@@ -114,7 +114,59 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-
   - TopicDetail is minimal placeholder until US-005 implements full idea list
    - bun run build catches TypeScript errors (acts as typecheck)
    - lint and typecheck scripts not configured in package.json yet (covered by build/test)
-   ---
+---
+## [Fri Jan 16 2026] - US-006: Edit topic
+Thread:
+Run: 20260116-075521-53841 (iteration 6)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-6.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-6.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 292f7c8 feat(topics): implement edit topic with tag sync
+- Post-commit status: clean
+- Verification:
+  - Command: bun test -> PASS (15 tests pass)
+  - Command: bun run build -> PASS
+  - Browser verification: PASS (all acceptance criteria verified)
+- Files changed:
+  - src/components/EditTopic.tsx (created new component)
+  - src/App.tsx (added /topics/:id/edit route)
+  - src/index.ts (added PUT /api/topics/:id endpoint with tag sync logic)
+- What was implemented:
+  - Created EditTopic component with pre-filled form for name, description, and tags
+  - Form loads existing topic data via GET /api/topics/:id on mount
+  - Tag input with autocomplete showing existing tags (excludes already-added tags)
+  - Form validation: name is required, shows "Name is required" error if empty
+  - Tag management: add new tags by typing/Enter, remove existing tags by clicking ×
+  - PUT /api/topics/:id endpoint updates topic and syncs tags:
+    - Updates name and description in topics table
+    - Removes tags from topic_tags that are no longer in the list
+    - Adds new tags to tags table (INSERT OR IGNORE with case-insensitive check)
+    - Links all tags to topic via topic_tags
+  - Redirects to topic detail page (/topics/:id) on successful update
+  - Shows loading state while fetching topic
+  - Shows 404 "Topic not found" if topic doesn't exist or is archived
+  - Verified in browser:
+    - Edit form pre-populates with existing name, description, tags
+    - Updated topic name from "Test Topic" to "Updated Test Topic"
+    - Removed tag1 by clicking × button
+    - Added new tag "newtag" by typing and pressing Enter
+    - Selected tag1 from autocomplete dropdown
+    - Saved changes and verified redirect to detail page with updated info
+    - Submitting empty name shows "Name is required" error, form doesn't submit
+    - Accessing /topics/non-existent-id/edit shows "Topic not found" (404)
+    - Tag sync correctly removes unchecked tags and adds new ones
+- **Learnings for future iterations:**
+  - EditTopic follows same pattern as NewTopic for consistency
+  - Tag autocomplete filters out tags already added to prevent duplicates
+  - Tag sync logic: compare existing tagIds with new tagIds, add missing, remove extras
+  - INSERT OR IGNORE for tags prevents duplicates from case variations
+  - Playwright element.fill() replaces content (keyboard.type() appends)
+  - dev-browser skill: need to call getAISnapshot() before selectSnapshotRef() to get current refs
+  - Form validation error appears at top of form, input gets destructive border
+  - bun run build catches TypeScript errors (acts as typecheck)
+  - lint and typecheck scripts not configured in package.json yet (covered by build/test)
+ ---
 ## [Fri Jan 16 2026] - US-005: View topic details and ideas list
 Thread:
 Run: 20260116-075521-53841 (iteration 5)
