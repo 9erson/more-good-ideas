@@ -384,3 +384,278 @@ Untracked files:
 
 nothing added to commit but untracked files present (use "git add" to track)
 
+[91m[1m| [0m[90m Bash     [0mStage all changes
+[94m[1m| [0m[90m skill    [0mLoaded skill: commit
+[91m[1m| [0m[90m Bash     [0mCommit changes
+
+[main (root-commit) 25fce28] chore(init): initialize Bun project with React 19 and Shadcn UI
+ 260 files changed, 11375 insertions(+)
+ create mode 100644 .agents/ralph/PROMPT_build.md
+ create mode 100644 .agents/ralph/README.md
+ create mode 100644 .agents/ralph/agents.sh
+ create mode 100644 .agents/ralph/config.sh
+ create mode 100644 .agents/ralph/diagram.svg
+ create mode 100755 .agents/ralph/log-activity.sh
+ create mode 100755 .agents/ralph/loop.sh
+ create mode 100644 .agents/ralph/ralph.webp
+ create mode 100644 .agents/ralph/references/CONTEXT_ENGINEERING.md
+ create mode 100644 .agents/ralph/references/GUARDRAILS.md
+ create mode 100644 .agents/tasks/prd-topics-ideas.json
+ create mode 120000 .cursor/rules/use-bun-instead-of-node-vite-npm-pnpm.mdc
+ create mode 100644 .gitignore
+ create mode 100644 .opencode/skills/commit/SKILL.md
+ create mode 100644 .opencode/skills/commit/references/commit_examples.md
+ create mode 100644 .opencode/skills/dev-browser/SKILL.md
+ create mode 100644 .opencode/skills/dev-browser/package-lock.json
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/BrowserMetrics-spare.pma
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/ChromeFeatureState
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Account Web Data
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Account Web Data-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Affiliation Database
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Affiliation Database-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/AutofillAiModelCache/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/AutofillAiModelCache/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/AutofillStrikeDatabase/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/AutofillStrikeDatabase/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/BookmarkMergedSurfaceOrdering
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/BudgetDatabase/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/BudgetDatabase/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/Cache_Data/3506ee93769c74e1_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/Cache_Data/70d96111b776ba72_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/Cache_Data/724bbe5276c0087f_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/Cache_Data/e091b156c00d22c1_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/Cache_Data/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/Cache_Data/index-dir/the-real-index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/No_Vary_Search/journal.baj
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cache/No_Vary_Search/snapshot.baf
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/ClientCertificates/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/ClientCertificates/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Code Cache/js/ff4af3b02e99c89c_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Code Cache/js/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Code Cache/js/index-dir/the-real-index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Code Cache/wasm/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Code Cache/wasm/index-dir/the-real-index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cookies
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Cookies-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DIPS
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DIPS-wal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnGraphiteCache/data_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnGraphiteCache/data_1
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnGraphiteCache/data_2
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnGraphiteCache/data_3
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnGraphiteCache/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnWebGPUCache/data_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnWebGPUCache/data_1
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnWebGPUCache/data_2
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnWebGPUCache/data_3
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/DawnWebGPUCache/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Rules/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Rules/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Rules/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Rules/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Rules/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Scripts/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Scripts/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Scripts/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Scripts/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension Scripts/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension State/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension State/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension State/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension State/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Extension State/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Favicons
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Favicons-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Feature Engagement Tracker/AvailabilityDB/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Feature Engagement Tracker/AvailabilityDB/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Feature Engagement Tracker/EventDB/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Feature Engagement Tracker/EventDB/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GCM Store/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GCM Store/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GCM Store/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GCM Store/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GCM Store/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GPUCache/data_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GPUCache/data_1
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GPUCache/data_2
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GPUCache/data_3
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/GPUCache/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/History
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/History-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Local Storage/leveldb/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Local Storage/leveldb/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Local Storage/leveldb/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Local Storage/leveldb/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Local Storage/leveldb/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Login Data
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Login Data For Account
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Login Data For Account-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Login Data-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Network Action Predictor
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Network Action Predictor-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Network Persistent State
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/PersistentOriginTrials/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/PersistentOriginTrials/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Preferences
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/PreferredApps
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/README
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Reporting and NEL
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Reporting and NEL-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/SCT Auditing Pending Reports
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Safe Browsing Cookies
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Safe Browsing Cookies-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Secure Preferences
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Segmentation Platform/SegmentInfoDB/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Segmentation Platform/SegmentInfoDB/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Segmentation Platform/SignalDB/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Segmentation Platform/SignalDB/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Segmentation Platform/SignalStorageConfigDB/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Segmentation Platform/SignalStorageConfigDB/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/ServerCertificate
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/ServerCertificate-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Session Storage/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Session Storage/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Session Storage/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Session Storage/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Session Storage/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Sessions/Session_13413004139329286
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Shared Dictionary/cache/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Shared Dictionary/cache/index-dir/the-real-index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Shared Dictionary/db
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Shared Dictionary/db-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/SharedStorage
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/SharedStorage-wal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Shortcuts
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Shortcuts-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Site Characteristics Database/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Site Characteristics Database/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Site Characteristics Database/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Site Characteristics Database/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Site Characteristics Database/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Sync Data/LevelDB/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Sync Data/LevelDB/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Sync Data/LevelDB/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Sync Data/LevelDB/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Sync Data/LevelDB/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Top Sites
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Top Sites-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Trust Tokens
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Trust Tokens-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Web Data
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/Web Data-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/WebStorage/QuotaManager
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/WebStorage/QuotaManager-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/chrome_cart_db/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/chrome_cart_db/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/commerce_subscription_db/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/commerce_subscription_db/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/discount_infos_db/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/discount_infos_db/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/discounts_db/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/discounts_db/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/heavy_ad_intervention_opt_out.db
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/heavy_ad_intervention_opt_out.db-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/parcel_tracking_db/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/parcel_tracking_db/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/metadata/000003.log
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/metadata/CURRENT
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/metadata/LOCK
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/metadata/LOG
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/shared_proto_db/metadata/MANIFEST-000001
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Default/trusted_vault.pb
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GrShaderCache/data_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GrShaderCache/data_1
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GrShaderCache/data_2
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GrShaderCache/data_3
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GrShaderCache/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GraphiteDawnCache/data_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GraphiteDawnCache/data_1
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GraphiteDawnCache/data_2
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GraphiteDawnCache/data_3
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/GraphiteDawnCache/index
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Last Version
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Local State
+ create mode 120000 .opencode/skills/dev-browser/profiles/browser-data/RunningChromeVersion
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/ShaderCache/data_0
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/ShaderCache/data_1
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/ShaderCache/data_2
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/ShaderCache/data_3
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/ShaderCache/index
+ create mode 120000 .opencode/skills/dev-browser/profiles/browser-data/SingletonCookie
+ create mode 120000 .opencode/skills/dev-browser/profiles/browser-data/SingletonLock
+ create mode 120000 .opencode/skills/dev-browser/profiles/browser-data/SingletonSocket
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/Variations
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/component_crx_cache/metadata.json
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/extensions_crx_cache/metadata.json
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/first_party_sets.db
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/first_party_sets.db-journal
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/segmentation_platform/ukm_db
+ create mode 100644 .opencode/skills/dev-browser/profiles/browser-data/segmentation_platform/ukm_db-wal
+ create mode 100644 .opencode/skills/dev-browser/references/scraping.md
+ create mode 100644 .opencode/skills/dev-browser/scripts/start-relay.ts
+ create mode 100644 .opencode/skills/dev-browser/scripts/start-server.ts
+ create mode 100755 .opencode/skills/dev-browser/server.sh
+ create mode 100644 .opencode/skills/dev-browser/src/client.ts
+ create mode 100644 .opencode/skills/dev-browser/src/index.ts
+ create mode 100644 .opencode/skills/dev-browser/src/relay.ts
+ create mode 100644 .opencode/skills/dev-browser/src/snapshot/__tests__/snapshot.test.ts
+ create mode 100644 .opencode/skills/dev-browser/src/snapshot/browser-script.ts
+ create mode 100644 .opencode/skills/dev-browser/src/snapshot/index.ts
+ create mode 100644 .opencode/skills/dev-browser/src/snapshot/inject.ts
+ create mode 100644 .opencode/skills/dev-browser/src/types.ts
+ create mode 100644 .opencode/skills/dev-browser/tsconfig.json
+ create mode 100644 .opencode/skills/dev-browser/vitest.config.ts
+ create mode 100644 .opencode/skills/prd/SKILL.md
+ create mode 100644 .ralph/.tmp/prd-prompt-20260116-074114-40914.md
+ create mode 100644 .ralph/.tmp/prompt-20260116-075521-53841-1.md
+ create mode 100644 .ralph/.tmp/story-20260116-075521-53841-1.json
+ create mode 100644 .ralph/.tmp/story-20260116-075521-53841-1.md
+ create mode 100644 .ralph/activity.log
+ create mode 100644 .ralph/errors.log
+ create mode 100644 .ralph/guardrails.md
+ create mode 100644 .ralph/progress.md
+ create mode 100644 .ralph/runs/run-20260116-075521-53841-iter-1.log
+ create mode 100644 AGENTS.md
+ create mode 100644 CLAUDE.md
+ create mode 100644 README.md
+ create mode 100644 build.ts
+ create mode 100644 bun-env.d.ts
+ create mode 100644 bun.lock
+ create mode 100644 bunfig.toml
+ create mode 100644 components.json
+ create mode 100644 docs/plans/2026-01-16-more-good-ideas-design.md
+ create mode 100644 package.json
+ create mode 100644 src/APITester.tsx
+ create mode 100644 src/App.tsx
+ create mode 100644 src/components/ui/button.tsx
+ create mode 100644 src/components/ui/card.tsx
+ create mode 100644 src/components/ui/input.tsx
+ create mode 100644 src/components/ui/label.tsx
+ create mode 100644 src/components/ui/select.tsx
+ create mode 100644 src/components/ui/textarea.tsx
+ create mode 100644 src/example.test.ts
+ create mode 100644 src/frontend.tsx
+ create mode 100644 src/index.css
+ create mode 100644 src/index.html
+ create mode 100644 src/index.ts
+ create mode 100644 src/lib/utils.ts
+ create mode 100644 src/logo.svg
+ create mode 100644 src/react.svg
+ create mode 100644 styles/globals.css
+ create mode 100644 tsconfig.json
+
+[91m[1m| [0m[90m Bash     [0mGet commit hash and subject
+
+25fce28 chore(init): initialize Bun project with React 19 and Shadcn UI
+
+[91m[1m| [0m[90m Bash     [0mCheck working tree is clean
+
+ M .ralph/runs/run-20260116-075521-53841-iter-1.log
+
