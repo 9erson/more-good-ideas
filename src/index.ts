@@ -162,6 +162,109 @@ const server = serve({
         }
       },
     },
+
+    "/api/topics/:id": {
+      async GET(req) {
+        try {
+          const topicId = req.params.id;
+
+          const topic = db.query(`
+            SELECT 
+              t.id,
+              t.name,
+              t.description,
+              t.isArchived,
+              t.createdAt,
+              t.updatedAt,
+              (
+                SELECT GROUP_CONCAT(tag.name, ',')
+                FROM topic_tags tt
+                JOIN tags tag ON tag.id = tt.tagId
+                WHERE tt.topicId = t.id
+              ) as tags
+            FROM topics t
+            WHERE t.id = ?
+          `).get(topicId) as {
+            id: string;
+            name: string;
+            description: string | null;
+            isArchived: number;
+            createdAt: string;
+            updatedAt: string;
+            tags: string | null;
+          } | undefined;
+
+          if (!topic || topic.isArchived === 1) {
+            return Response.json({ error: "Topic not found" }, { status: 404 });
+          }
+
+          const ideas = db.query(`
+            SELECT 
+              i.id,
+              i.topicId,
+              i.name,
+              i.description,
+              i.isArchived,
+              i.createdAt,
+              i.updatedAt,
+              f.rating as feedbackRating,
+              f.notes as feedbackNotes,
+              (
+                SELECT GROUP_CONCAT(tag.name, ',')
+                FROM idea_tags it
+                JOIN tags tag ON tag.id = it.tagId
+                WHERE it.ideaId = i.id
+              ) as tags
+            FROM ideas i
+            LEFT JOIN feedback f ON f.ideaId = i.id
+            WHERE i.topicId = ? AND i.isArchived = 0
+            ORDER BY i.createdAt DESC
+          `).all(topicId) as Array<{
+            id: string;
+            topicId: string;
+            name: string;
+            description: string | null;
+            isArchived: number;
+            createdAt: string;
+            updatedAt: string;
+            feedbackRating: number | null;
+            feedbackNotes: string | null;
+            tags: string | null;
+          }>;
+
+          const formattedIdeas = ideas.map(idea => ({
+            id: idea.id,
+            topicId: idea.topicId,
+            name: idea.name,
+            description: idea.description,
+            isArchived: idea.isArchived === 1,
+            tags: idea.tags ? idea.tags.split(",") : [],
+            feedback: idea.feedbackRating
+              ? {
+                  rating: idea.feedbackRating,
+                  notes: idea.feedbackNotes,
+                }
+              : undefined,
+            createdAt: idea.createdAt,
+            updatedAt: idea.updatedAt,
+          }));
+
+          return Response.json({
+            id: topic.id,
+            name: topic.name,
+            description: topic.description,
+            isArchived: topic.isArchived === 1,
+            tags: topic.tags ? topic.tags.split(",") : [],
+            ideas: formattedIdeas,
+            createdAt: topic.createdAt,
+            updatedAt: topic.updatedAt,
+          });
+        } catch (error) {
+          console.error("Error fetching topic:", error);
+          return Response.json({ error: "Failed to fetch topic" }, { status: 500 });
+        }
+      },
+    },
   },
 
   development: process.env.NODE_ENV !== "production" && {

@@ -8,3 +8,18 @@ export type Topic = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type Idea = {
+  id: string;
+  topicId: string;
+  name: string;
+  description: string | null;
+  isArchived: boolean;
+  tags: string[];
+  feedback?: {
+    rating: number;
+    notes: string | null;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
