@@ -264,6 +264,90 @@ const server = serve({
           return Response.json({ error: "Failed to fetch topic" }, { status: 500 });
         }
       },
+
+      async PUT(req) {
+        try {
+          const topicId = req.params.id;
+          const body = await req.json();
+          const { name, description, tags } = body;
+
+          if (!name || typeof name !== "string" || name.trim() === "") {
+            return Response.json({ error: "Name is required" }, { status: 400 });
+          }
+
+          const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
+            | { id: string; name: string; description: string | null; isArchived: number; createdAt: string; updatedAt: string }
+            | undefined;
+
+          if (!existingTopic || existingTopic.isArchived === 1) {
+            return Response.json({ error: "Topic not found" }, { status: 404 });
+          }
+
+          const now = new Date().toISOString();
+
+          db.query(`
+            UPDATE topics
+            SET name = ?, description = ?, updatedAt = ?
+            WHERE id = ?
+          `).run(name.trim(), description || null, now, topicId);
+
+          if (tags && Array.isArray(tags)) {
+            const existingTagLinks = db.query("SELECT tagId FROM topic_tags WHERE topicId = ?").all(topicId) as Array<{ tagId: string }>;
+            const existingTagIds = existingTagLinks.map(t => t.tagId);
+
+            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)");
+            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)");
+            const linkTag = db.query("INSERT OR IGNORE INTO topic_tags (topicId, tagId) VALUES (?, ?)");
+            const unlinkTag = db.query("DELETE FROM topic_tags WHERE topicId = ? AND tagId = ?");
+
+            const newTagIds: string[] = [];
+
+            for (const tag of tags) {
+              const tagName = tag.trim();
+              if (!tagName) continue;
+
+              const existingTag = getTagId.get(tagName) as { id: string } | undefined;
+
+              if (existingTag) {
+                newTagIds.push(existingTag.id);
+                linkTag.run(topicId, existingTag.id);
+              } else {
+                const tagId = crypto.randomUUID();
+                insertTag.run(tagId, tagName);
+                newTagIds.push(tagId);
+                linkTag.run(topicId, tagId);
+              }
+            }
+
+            for (const oldTagId of existingTagIds) {
+              if (!newTagIds.includes(oldTagId)) {
+                unlinkTag.run(topicId, oldTagId);
+              }
+            }
+          }
+
+          const topic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as {
+            id: string;
+            name: string;
+            description: string | null;
+            isArchived: number;
+            createdAt: string;
+            updatedAt: string;
+          };
+
+          return Response.json({
+            id: topic.id,
+            name: topic.name,
+            description: topic.description,
+            isArchived: topic.isArchived === 1,
+            createdAt: topic.createdAt,
+            updatedAt: topic.updatedAt,
+          });
+        } catch (error) {
+          console.error("Error updating topic:", error);
+          return Response.json({ error: "Failed to update topic" }, { status: 500 });
+        }
+      },
     },
   },
 

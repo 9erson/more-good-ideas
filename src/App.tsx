@@ -3,6 +3,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { Archive } from "@/components/Archive";
 import { NewTopic } from "@/components/NewTopic";
 import { TopicDetail } from "@/components/TopicDetail";
+import { EditTopic } from "@/components/EditTopic";
 
 export function App() {
   return (
@@ -12,6 +13,7 @@ export function App() {
         <Route path="/archive" element={<Archive />} />
         <Route path="/topics/new" element={<NewTopic />} />
         <Route path="/topics/:id" element={<TopicDetail />} />
+        <Route path="/topics/:id/edit" element={<EditTopic />} />
       </Routes>
     </BrowserRouter>
   );

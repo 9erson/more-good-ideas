@@ -112,47 +112,68 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-
   - Browser verification with dev-browser: need to call getAISnapshot() before selectSnapshotRef()
   - Form validation handled client-side before API call for better UX
   - TopicDetail is minimal placeholder until US-005 implements full idea list
-  - bun run build catches TypeScript errors (acts as typecheck)
-  - lint and typecheck scripts not configured in package.json yet (covered by build/test)
-## [Fri Jan 16 2026] - US-003: Create dashboard with topic list
+   - bun run build catches TypeScript errors (acts as typecheck)
+   - lint and typecheck scripts not configured in package.json yet (covered by build/test)
+   ---
+## [Fri Jan 16 2026] - US-005: View topic details and ideas list
 Thread:
-Run: 20260116-075521-53841 (iteration 3)
-Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-3.log
-Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-3.md
+Run: 20260116-075521-53841 (iteration 5)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-5.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-5.md
 - Guardrails reviewed: yes
 - No-commit run: false
-- Commit: be842e5 feat(dashboard): implement dashboard with topic list (and subsequent chore commits)
-- Post-commit status: clean (log file auto-updates during run expected)
+- Commit: 7c89fd4 feat(topic-detail): display ideas list with tags, feedback, and action buttons
+- Post-commit status: clean
 - Verification:
   - Command: bun test -> PASS (15 tests pass)
   - Command: bun run build -> PASS
+  - Browser verification: PASS (all acceptance criteria verified)
 - Files changed:
-  - package.json (added react-router-dom)
-  - src/App.tsx (added React Router with Routes)
-  - src/index.ts (added /api/topics endpoint)
-  - src/components/Dashboard.tsx (new component)
-  - src/components/Archive.tsx (placeholder page)
-  - src/components/NewTopic.tsx (placeholder page)
-  - src/lib/types.ts (Topic type definition)
+  - src/lib/types.ts (added Idea type)
+  - src/index.ts (added /api/topics/:id endpoint)
+  - src/components/TopicDetail.tsx (implemented full idea list and action buttons)
 - What was implemented:
-  - Added react-router-dom dependency for client-side routing
-  - Created /api/topics endpoint that queries topics with idea counts and tags
-  - Dashboard component with sidebar navigation and responsive grid layout
-  - Topic cards display: name, description, tag badges, idea count
-  - Navigation includes: Dashboard, Archive links; New Topic button
-  - Filtered archived topics (isArchived=1) from dashboard view
-  - Empty state shows "No topics yet" message with CTA button
-  - Responsive layout: sidebar hidden on mobile (lg:block), grid adapts 1-3 columns
-  - Verified in browser: dashboard shows topics correctly, clicking card navigates to /topics/:id
-  - Verified archived topics not visible on dashboard
-  - Verified mobile responsiveness (375px viewport)
+  - Added Idea type to types.ts with id, topicId, name, description, isArchived, tags, feedback, createdAt, updatedAt fields
+  - Created /api/topics/:id GET endpoint that queries topic and all non-archived ideas with tags and feedback
+  - Query filters: topic must exist and not be archived (404 if isArchived=1 or not found)
+  - Ideas query includes LEFT JOIN with feedback table to get rating and notes
+  - Ideas filtered to only show non-archived (i.isArchived = 0)
+  - Ideas ordered by createdAt DESC (newest first)
+  - TopicDetail component displays:
+    - Topic name (h1)
+    - Topic description (paragraph)
+    - Topic tags as badge pills (rounded-full with secondary bg)
+    - "New Idea" button linking to /ideas/new?topicId=:id
+    - "Edit Topic" button linking to /topics/:id/edit
+    - "Delete Topic" button with confirmation dialog
+  - Ideas list displays:
+    - Idea name (CardTitle)
+    - Idea description (CardDescription)
+    - Idea tags as badge pills
+    - Feedback rating as stars (★) with numeric rating (X/5)
+    - Empty state: "No ideas yet" with CTA to add first idea
+  - Idea cards are clickable Links that navigate to /ideas/:id (route not implemented yet)
+  - Delete button uses confirm() dialog: "Are you sure you want to delete \"X\"? This will archive the topic and all its ideas."
+  - On confirm: navigate to dashboard (/)
+  - Verified in browser:
+    - Topic page shows name, description, tags correctly
+    - Ideas list displays all ideas with name, description, tags, rating
+    - "New Idea" button links to /ideas/new?topicId=7bec87ef-3995-46a3-b8fa-11fe210dcb31
+    - "Edit Topic" button links to /topics/7bec87ef-3995-46a3-b8fa-11fe210dcb31/edit
+    - "Delete Topic" button shows confirmation dialog with correct message
+    - Clicking idea card navigates to /ideas/c9a18fe6-3b22-4d0f-b40c-bfd42db09561
+    - Non-existent topic ID shows "Topic not found" (404)
+    - Archived topic ID shows "Topic not found" (404)
 - **Learnings for future iterations:**
-  - React Router requires BrowserRouter wrapping all routes
-  - SQLite GROUP_CONCAT subquery is cleaner than JOIN with DISTINCT for aggregation
-  - ARIA snapshot shows adjacent inline-flex elements as concatenated text in accessibility tree
-  - DOM verification shows tags render correctly as separate span elements
-  - Dev-browser needs getAISnapshot called before selectSnapshotRef
+  - GROUP_CONCAT with comma delimiter and split() for array conversion is efficient for tag aggregation
+  - LEFT JOIN for feedback allows ideas without feedback (feedback is optional)
+  - Playwright dialog handling: need to set up dialog handler before clicking button that triggers it
+  - confirm() dialog is synchronous in browser but asynchronous in Playwright automation
+  - Idea cards use Card component with hover effects (shadow-md, border-primary on hover)
+  - Empty state uses dashed border for visual distinction
+  - Button variants: default (primary), outline (secondary), destructive (delete action)
+  - Tag badges use consistent styling (rounded-full, secondary bg, border, small text)
+  - Layout: max-w-4xl for wider content area to accommodate idea cards
   - bun run build catches TypeScript errors (acts as typecheck)
   - lint and typecheck scripts not configured in package.json yet (covered by build/test)
-  - Client-side routing requires server to serve index.html for all routes (already configured)
 ---

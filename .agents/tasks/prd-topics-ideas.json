@@ -254,7 +254,7 @@
     {
       "id": "US-003",
       "title": "Create dashboard with topic list",
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-002"
       ],
@@ -271,12 +271,15 @@
         "Empty state shows 'No topics yet' message",
         "Responsive layout (mobile, tablet, desktop)",
         "Run bun test, bun run lint, bun run typecheck"
-      ]
+      ],
+      "updatedAt": "2026-01-16T03:07:35.677486+00:00",
+      "completedAt": "2026-01-16T03:07:35.677651+00:00",
+      "startedAt": "2026-01-16T03:07:35.677653+00:00"
     },
     {
       "id": "US-004",
       "title": "Create new topic",
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-003"
       ],
@@ -294,12 +297,15 @@
         "Tags are case-insensitive (duplicate tags rejected)",
         "Form clears on success",
         "Run bun test, bun run lint, bun run typecheck"
-      ]
+      ],
+      "startedAt": "2026-01-16T03:07:37.765063+00:00",
+      "completedAt": "2026-01-16T03:18:27.421653+00:00",
+      "updatedAt": "2026-01-16T03:18:27.421492+00:00"
     },
     {
       "id": "US-005",
       "title": "View topic details and ideas list",
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-004"
       ],
@@ -317,12 +323,15 @@
         "Negative case: navigating to archived topic id shows 404",
         "Clicking idea card navigates to /ideas/:id",
         "Run bun test, bun run lint, bun run typecheck"
-      ]
+      ],
+      "startedAt": "2026-01-16T03:18:29.470163+00:00",
+      "completedAt": "2026-01-16T03:29:15.750027+00:00",
+      "updatedAt": "2026-01-16T03:29:15.749876+00:00"
     },
     {
       "id": "US-006",
       "title": "Edit topic",
-      "status": "open",
+      "status": "in_progress",
       "dependsOn": [
         "US-005"
       ],
@@ -338,7 +347,10 @@
         "Negative case: submit empty name shows validation error",
         "Tag sync removes unchecked tags and adds new ones",
         "Run bun test, bun run lint, bun run typecheck"
-      ]
+      ],
+      "startedAt": "2026-01-16T03:29:17.843398+00:00",
+      "completedAt": null,
+      "updatedAt": "2026-01-16T03:29:17.843720+00:00"
     },
     {
       "id": "US-007",
