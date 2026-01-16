@@ -4,6 +4,8 @@ import { Archive } from "@/components/Archive";
 import { NewTopic } from "@/components/NewTopic";
 import { TopicDetail } from "@/components/TopicDetail";
 import { EditTopic } from "@/components/EditTopic";
+import { NewIdea } from "@/components/NewIdea";
+import { IdeaDetail } from "@/components/IdeaDetail";
 
 export function App() {
   return (
@@ -14,6 +16,8 @@ export function App() {
         <Route path="/topics/new" element={<NewTopic />} />
         <Route path="/topics/:id" element={<TopicDetail />} />
         <Route path="/topics/:id/edit" element={<EditTopic />} />
+        <Route path="/ideas/new" element={<NewIdea />} />
+        <Route path="/ideas/:id" element={<IdeaDetail />} />
       </Routes>
     </BrowserRouter>
   );

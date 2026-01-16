@@ -163,6 +163,160 @@ const server = serve({
       },
     },
 
+    "/api/ideas": {
+      async POST(req) {
+        try {
+          const body = await req.json();
+          const { topicId, name, description, tags } = body;
+
+          if (!topicId || typeof topicId !== "string" || topicId.trim() === "") {
+            return Response.json({ error: "Topic is required" }, { status: 400 });
+          }
+
+          if (!name || typeof name !== "string" || name.trim() === "") {
+            return Response.json({ error: "Name is required" }, { status: 400 });
+          }
+
+          const topic = db.query("SELECT * FROM topics WHERE id = ? AND isArchived = 0").get(topicId) as
+            | { id: string; name: string; description: string | null; isArchived: number; createdAt: string; updatedAt: string }
+            | undefined;
+
+          if (!topic) {
+            return Response.json({ error: "Topic not found" }, { status: 404 });
+          }
+
+          const ideaId = crypto.randomUUID();
+          const now = new Date().toISOString();
+
+          db.query(`
+            INSERT INTO ideas (id, topicId, name, description, isArchived, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, 0, ?, ?)
+          `).run(ideaId, topicId, name.trim(), description || null, now, now);
+
+          const tagIds: string[] = [];
+
+          if (tags && Array.isArray(tags) && tags.length > 0) {
+            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)");
+            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)");
+
+            for (const tag of tags) {
+              const tagName = tag.trim();
+              if (!tagName) continue;
+
+              const existingTag = getTagId.get(tagName) as { id: string } | undefined;
+
+              if (existingTag) {
+                tagIds.push(existingTag.id);
+              } else {
+                const tagId = crypto.randomUUID();
+                insertTag.run(tagId, tagName);
+                tagIds.push(tagId);
+              }
+            }
+
+            const linkTag = db.query("INSERT OR IGNORE INTO idea_tags (ideaId, tagId) VALUES (?, ?)");
+            for (const tagId of tagIds) {
+              linkTag.run(ideaId, tagId);
+            }
+          }
+
+          const idea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as {
+            id: string;
+            topicId: string;
+            name: string;
+            description: string | null;
+            isArchived: number;
+            createdAt: string;
+            updatedAt: string;
+          };
+
+          return Response.json({
+            id: idea.id,
+            topicId: idea.topicId,
+            name: idea.name,
+            description: idea.description,
+            isArchived: idea.isArchived === 1,
+            createdAt: idea.createdAt,
+            updatedAt: idea.updatedAt,
+          });
+        } catch (error) {
+          console.error("Error creating idea:", error);
+          return Response.json({ error: "Failed to create idea" }, { status: 500 });
+        }
+      },
+    },
+
+    "/api/ideas/:id": {
+      async GET(req) {
+        try {
+          const ideaId = req.params.id;
+
+          const idea = db.query(`
+            SELECT 
+              i.id,
+              i.topicId,
+              i.name,
+              i.description,
+              i.isArchived,
+              i.createdAt,
+              i.updatedAt,
+              t.name as topicName,
+              t.isArchived as topicArchived,
+              f.rating as feedbackRating,
+              f.notes as feedbackNotes,
+              (
+                SELECT GROUP_CONCAT(tag.name, ',')
+                FROM idea_tags it
+                JOIN tags tag ON tag.id = it.tagId
+                WHERE it.ideaId = i.id
+              ) as tags
+            FROM ideas i
+            LEFT JOIN topics t ON t.id = i.topicId
+            LEFT JOIN feedback f ON f.ideaId = i.id
+            WHERE i.id = ?
+          `).get(ideaId) as {
+            id: string;
+            topicId: string;
+            name: string;
+            description: string | null;
+            isArchived: number;
+            createdAt: string;
+            updatedAt: string;
+            topicName: string | null;
+            topicArchived: number | null;
+            feedbackRating: number | null;
+            feedbackNotes: string | null;
+            tags: string | null;
+          } | undefined;
+
+          if (!idea || idea.isArchived === 1 || idea.topicArchived === 1) {
+            return Response.json({ error: "Idea not found" }, { status: 404 });
+          }
+
+          return Response.json({
+            id: idea.id,
+            topicId: idea.topicId,
+            topicName: idea.topicName,
+            name: idea.name,
+            description: idea.description,
+            isArchived: idea.isArchived === 1,
+            tags: idea.tags ? idea.tags.split(",") : [],
+            feedback: idea.feedbackRating
+              ? {
+                  rating: idea.feedbackRating,
+                  notes: idea.feedbackNotes,
+                }
+              : undefined,
+            createdAt: idea.createdAt,
+            updatedAt: idea.updatedAt,
+          });
+        } catch (error) {
+          console.error("Error fetching idea:", error);
+          return Response.json({ error: "Failed to fetch idea" }, { status: 500 });
+        }
+      },
+    },
+
     "/api/topics/:id": {
       async GET(req) {
         try {
