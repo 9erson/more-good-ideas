@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "total": 19,
+  "remaining": 19,
+  "quality_gates": [
+    "bun test",
+    "bun run lint",
+    "bun run typecheck",
+    "bun run build"
+  ],
+  "id": "US-001",
+  "title": "Initialize project and setup development environment"
+}
