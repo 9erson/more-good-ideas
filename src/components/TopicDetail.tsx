@@ -3,6 +3,14 @@ import { useEffect, useState } from "react";
 import type { Idea } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function TopicDetail() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +24,8 @@ export function TopicDetail() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchTopic = async () => {
@@ -39,9 +49,26 @@ export function TopicDetail() {
     fetchTopic();
   }, [id]);
 
-  const handleDelete = () => {
-    if (topic && confirm(`Are you sure you want to delete "${topic.name}"? This will archive the topic and all its ideas.`)) {
+  const handleDelete = async () => {
+    if (!topic) return;
+
+    setIsDeleting(true);
+
+    try {
+      const res = await fetch(`/api/topics/${topic.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete topic");
+      }
+
       navigate("/");
+    } catch (err) {
+      console.error("Failed to delete topic:", err);
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -118,7 +145,7 @@ export function TopicDetail() {
               <Button variant="outline" asChild>
                 <Link to={`/topics/${topic.id}/edit`}>Edit Topic</Link>
               </Button>
-              <Button variant="destructive" onClick={handleDelete}>
+              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
                 Delete Topic
               </Button>
             </div>
@@ -179,6 +206,25 @@ export function TopicDetail() {
           </div>
         </div>
       </main>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Topic</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{topic?.name}"? This will archive the topic and all its ideas. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

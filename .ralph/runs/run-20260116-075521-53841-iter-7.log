@@ -1,0 +1,320 @@
+I'll start by reading the guardrails and understanding the task.
+[96m[1m| [0m[90m Read     [0m.ralph/errors.log
+[96m[1m| [0m[90m Read     [0m.agents/tasks/prd-topics-ideas.json
+[96m[1m| [0m[90m Read     [0m.ralph/guardrails.md
+[91m[1m| [0m[90m Bash     [0mLog start of work on US-007
+
+zsh:1: no such file or directory: /Users/gerson/development/more-good-ideas/ralph
+
+Let me explore the codebase to understand the current implementation:
+[96m[1m| [0m[90m Read     [0mpackage.json
+[94m[1m| [0m[90m Glob     [0m{"pattern":"**/*.{ts,tsx}"}
+[96m[1m| [0m[90m Read     [0mAGENTS.md
+[96m[1m| [0m[90m Read     [0msrc/components/TopicDetail.tsx
+[96m[1m| [0m[90m Read     [0msrc/App.tsx
+[96m[1m| [0m[90m Read     [0msrc/lib/db.ts
+[96m[1m| [0m[90m Read     [0msrc/components/EditTopic.tsx
+[96m[1m| [0m[90m Read     [0msrc/index.ts
+[94m[1m| [0m[90m Glob     [0m{"pattern":"src/components/ui/*.tsx"}
+[96m[1m| [0m[90m Read     [0msrc/lib/types.ts
+[91m[1m| [0m[90m Bash     [0mInstall Radix UI dialog component
+
+bun add v1.3.5 (1e86cebd)
+Resolving dependencies
+Resolved, downloaded and extracted [3]
+Saved lockfile
+
+installed @radix-ui/react-dialog@1.1.15
+
+5 packages installed [975.00ms]
+
+[92m[1m| [0m[90m Write    [0msrc/components/ui/dialog.tsx
+[92m[1m| [0m[90m Edit     [0msrc/components/TopicDetail.tsx
+[92m[1m| [0m[90m Edit     [0msrc/components/TopicDetail.tsx
+[92m[1m| [0m[90m Edit     [0msrc/components/TopicDetail.tsx
+[92m[1m| [0m[90m Edit     [0msrc/components/TopicDetail.tsx
+[92m[1m| [0m[90m Edit     [0msrc/components/TopicDetail.tsx
+[92m[1m| [0m[90m Edit     [0msrc/index.ts
+[91m[1m| [0m[90m Bash     [0mLog major code change
+
+zsh:1: no such file or directory: /Users/gerson/development/more-good-ideas/ralph
+
+[91m[1m| [0m[90m Bash     [0mRun tests
+
+bun test v1.3.5 (1e86cebd)
+
+ 15 pass
+ 0 fail
+ 53 expect() calls
+Ran 15 tests across 2 files. [81.00ms]
+
+[96m[1m| [0m[90m Read     [0mpackage.json
+[91m[1m| [0m[90m Bash     [0mBuild the application
+
+$ bun run build.ts
+
+🚀 Starting build process...
+
+🗑️ Cleaning previous build at /Users/gerson/development/more-good-ideas/dist
+📄 Found 1 HTML file to process
+
+┌───┬────────────────────────────┬─────────────┬───────────┐
+│   │ File                       │ Type        │ Size      │
+├───┼────────────────────────────┼─────────────┼───────────┤
+│ 0 │ dist/chunk-7neetbzx.js     │ entry-point │ 318.08 KB │
+│ 1 │ dist/index.html            │ entry-point │ 388.00 B  │
+│ 2 │ dist/chunk-7neetbzx.js.map │ sourcemap   │ 1.56 MB   │
+│ 3 │ dist/logo-kygw735p.svg     │ asset       │ 3.85 KB   │
+└───┴────────────────────────────┴─────────────┴───────────┘
+
+✅ Build completed in 183.13ms
+
+
+[94m[1m| [0m[90m skill    [0mLoaded skill: dev-browser
+[91m[1m| [0m[90m Bash     [0mStart dev browser server
+
+zsh:cd:1: no such file or directory: skills/dev-browser
+
+[91m[1m| [0m[90m Bash     [0mStart dev server in background
+[91m[1m| [0m[90m Bash     [0mCheck if dev server is running
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/_bun/asset/335ed0fce7e3a596.svg" />
+    <title>Bun + React</title>
+    
+  <script type="module" crossorigin src="/_bun/client/index-0100000097d25cfa.js" data-bun-dev-server-script></script><script>((a)=>{document.addEventListener('visibilitychange',globalThis[Symbol.for('bun:loadData')]=()=>document.visibilityState==='hidden'&&navigator.sendBeacon('/_bun/unref',a));})(document.querySelector('[data-bun-dev-server-script]').src.slice(-11,-3))</script></head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+
+[96m[1m| [0m[90m Read     [0msrc/db.test.ts
+[92m[1m| [0m[90m Write    [0msrc/delete-topic.test.ts
+[91m[1m| [0m[90m Bash     [0mRun delete topic tests
+
+bun test v1.3.5 (1e86cebd)
+
+src/delete-topic.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 6 | describe("DELETE /api/topics/:id", () => {
+ 7 |   let server: ReturnType<typeof serve>;
+ 8 |   let db: ReturnType<typeof getDatabase>;
+ 9 |   let baseURL: string;
+10 | 
+11 |   beforeAll(async () => {
+       ^
+ReferenceError: beforeAll is not defined
+      at <anonymous> (/Users/gerson/development/more-good-ideas/src/delete-topic.test.ts:11:3)
+-------------------------------
+
+
+ 0 pass
+ 0 fail
+ 1 error
+Ran 0 tests across 1 file. [15.00ms]
+
+[92m[1m| [0m[90m Edit     [0msrc/delete-topic.test.ts
+[91m[1m| [0m[90m Bash     [0mRun delete topic tests again
+
+bun test v1.3.5 (1e86cebd)
+
+ 3 pass
+ 0 fail
+ 14 expect() calls
+Ran 3 tests across 1 file. [35.00ms]
+
+[91m[1m| [0m[90m Bash     [0mRun all tests
+
+bun test v1.3.5 (1e86cebd)
+
+ 18 pass
+ 0 fail
+ 67 expect() calls
+Ran 18 tests across 3 files. [95.00ms]
+
+[91m[1m| [0m[90m Bash     [0mCheck git status
+
+ M .agents/tasks/prd-topics-ideas.json
+ M .ralph/activity.log
+ M .ralph/errors.log
+ M .ralph/runs/run-20260116-075521-53841-iter-6.log
+ M bun.lock
+ M package.json
+ M src/components/TopicDetail.tsx
+ M src/index.ts
+?? .ralph/runs/run-20260116-075521-53841-iter-6.md
+?? .ralph/runs/run-20260116-075521-53841-iter-7.log
+?? src/components/ui/dialog.tsx
+?? src/delete-topic.test.ts
+
+[91m[1m| [0m[90m Bash     [0mBuild the application
+
+$ bun run build.ts
+
+🚀 Starting build process...
+
+🗑️ Cleaning previous build at /Users/gerson/development/more-good-ideas/dist
+📄 Found 1 HTML file to process
+
+┌───┬────────────────────────────┬─────────────┬───────────┐
+│   │ File                       │ Type        │ Size      │
+├───┼────────────────────────────┼─────────────┼───────────┤
+│ 0 │ dist/chunk-7neetbzx.js     │ entry-point │ 318.08 KB │
+│ 1 │ dist/index.html            │ entry-point │ 388.00 B  │
+│ 2 │ dist/chunk-7neetbzx.js.map │ sourcemap   │ 1.56 MB   │
+│ 3 │ dist/logo-kygw735p.svg     │ asset       │ 3.85 KB   │
+└───┴────────────────────────────┴─────────────┴───────────┘
+
+✅ Build completed in 157.34ms
+
+
+[91m[1m| [0m[90m Bash     [0mCheck changes to TopicDetail
+
+diff --git a/src/components/TopicDetail.tsx b/src/components/TopicDetail.tsx
+index a22094c..d6a451c 100644
+--- a/src/components/TopicDetail.tsx
++++ b/src/components/TopicDetail.tsx
+@@ -3,6 +3,14 @@ import { useEffect, useState } from "react";
+ import type { Idea } from "@/lib/types";
+ import { Button } from "@/components/ui/button";
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
++import {
++  Dialog,
++  DialogContent,
++  DialogDescription,
++  DialogFooter,
++  DialogHeader,
++  DialogTitle,
++} from "@/components/ui/dialog";
+ 
+ export function TopicDetail() {
+   const { id } = useParams<{ id: string }>();
+@@ -16,6 +24,8 @@ export function TopicDetail() {
+   } | null>(null);
+   const [loading, setLoading] = useState(true);
+   const [notFound, setNotFound] = useState(false);
++  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
++  const [isDeleting, setIsDeleting] = useState(false);
+ 
+   useEffect(() => {
+     const fetchTopic = async () => {
+@@ -39,9 +49,26 @@ export function TopicDetail() {
+     fetchTopic();
+   }, [id]);
+ 
+-  const handleDelete = () => {
+-    if (topic && confirm(`Are you sure you want to delete "${topic.name}"? This will archive the topic and all its ideas.`)) {
++  const handleDelete = async () => {
++    if (!topic) return;
++
++    setIsDeleting(true);
++
++    try {
++      const res = await fetch(`/api/topics/${topic.id}`, {
++        method: "DELETE",
++      });
++
++      if (!res.ok) {
++        const data = await res.json();
++        throw new Error(data.error || "Failed to delete topic");
++      }
++
+       navigate("/");
++    } catch (err) {
++      console.error("Failed to delete topic:", err);
++      setIsDeleting(false);
++      setDeleteDialogOpen(false);
+     }
+   };
+ 
+@@ -118,7 +145,7 @@ export function TopicDetail() {
+               <Button variant="outline" asChild>
+                 <Link to={`/topics/${topic.id}/edit`}>Edit Topic</Link>
+               </Button>
+-              <Button variant="destructive" onClick={handleDelete}>
++              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+                 Delete Topic
+               </Button>
+             </div>
+@@ -179,6 +206,25 @@ export function TopicDetail() {
+           </div>
+         </div>
+       </main>
++
++      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
++        <DialogContent>
++          <DialogHeader>
++            <DialogTitle>Delete Topic</DialogTitle>
++            <DialogDescription>
++              Are you sure you want to delete "{topic?.name}"? This will archive the topic and all its ideas. This action cannot be undone.
++            </DialogDescription>
++          </DialogHeader>
++          <DialogFooter>
++            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
++              Cancel
++            </Button>
++            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
++              {isDeleting ? "Deleting..." : "Confirm"}
++            </Button>
++          </DialogFooter>
++        </DialogContent>
++      </Dialog>
+     </div>
+   );
+ }
+
+[91m[1m| [0m[90m Bash     [0mCheck changes to index.ts
+
+diff --git a/src/index.ts b/src/index.ts
+index 7be0277..911a952 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -348,6 +348,39 @@ const server = serve({
+           return Response.json({ error: "Failed to update topic" }, { status: 500 });
+         }
+       },
++
++      async DELETE(req) {
++        try {
++          const topicId = req.params.id;
++
++          const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
++            | { id: string; name: string; description: string | null; isArchived: number; createdAt: string; updatedAt: string }
++            | undefined;
++
++          if (!existingTopic || existingTopic.isArchived === 1) {
++            return Response.json({ error: "Topic not found" }, { status: 404 });
++          }
++
++          const now = new Date().toISOString();
++
++          db.query(`
++            UPDATE topics
++            SET isArchived = 1, updatedAt = ?
++            WHERE id = ?
++          `).run(now, topicId);
++
++          db.query(`
++            UPDATE ideas
++            SET isArchived = 1, updatedAt = ?
++            WHERE topicId = ?
++          `).run(now, topicId);
++
++          return Response.json({ success: true });
++        } catch (error) {
++          console.error("Error deleting topic:", error);
++          return Response.json({ error: "Failed to delete topic" }, { status: 500 });
++        }
++      },
+     },
+   },
+ 
+
+[94m[1m| [0m[90m Glob     [0m{"pattern":"*.config.{js,ts,json,mjs}"}
+[94m[1m| [0m[90m Glob     [0m{"pattern":"*eslint*"}

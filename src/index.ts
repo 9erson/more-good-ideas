@@ -348,6 +348,39 @@ const server = serve({
           return Response.json({ error: "Failed to update topic" }, { status: 500 });
         }
       },
+
+      async DELETE(req) {
+        try {
+          const topicId = req.params.id;
+
+          const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
+            | { id: string; name: string; description: string | null; isArchived: number; createdAt: string; updatedAt: string }
+            | undefined;
+
+          if (!existingTopic || existingTopic.isArchived === 1) {
+            return Response.json({ error: "Topic not found" }, { status: 404 });
+          }
+
+          const now = new Date().toISOString();
+
+          db.query(`
+            UPDATE topics
+            SET isArchived = 1, updatedAt = ?
+            WHERE id = ?
+          `).run(now, topicId);
+
+          db.query(`
+            UPDATE ideas
+            SET isArchived = 1, updatedAt = ?
+            WHERE topicId = ?
+          `).run(now, topicId);
+
+          return Response.json({ success: true });
+        } catch (error) {
+          console.error("Error deleting topic:", error);
+          return Response.json({ error: "Failed to delete topic" }, { status: 500 });
+        }
+      },
     },
   },
 
