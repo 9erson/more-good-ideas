@@ -1,8 +1,10 @@
 import { Database } from "bun:sqlite";
+import { mkdirSync } from "node:fs";
 
 const DB_PATH = "data/database.sqlite";
 
 export function getDatabase(): Database {
+  mkdirSync("data", { recursive: true });
   const db = new Database(DB_PATH);
   db.exec("PRAGMA foreign_keys = ON");
   return db;
