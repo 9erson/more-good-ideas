@@ -114,7 +114,64 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-
   - TopicDetail is minimal placeholder until US-005 implements full idea list
    - bun run build catches TypeScript errors (acts as typecheck)
    - lint and typecheck scripts not configured in package.json yet (covered by build/test)
----
+ ---
+## [Fri Jan 16 2026] - US-007: Delete topic
+Thread:
+Run: 20260116-075521-53841 (iteration 7)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-7.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-7.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 9412523 chore(ralph): update run log for iteration 7 (and preceding commit ffefaca)
+- Post-commit status: clean
+- Verification:
+  - Command: bun test -> PASS (18 tests pass, including 3 new tests)
+  - Command: bun run build -> PASS
+  - Command: bun test delete-topic -> PASS (3 tests pass)
+- Files changed:
+  - src/components/ui/dialog.tsx (created Radix UI dialog component)
+  - src/components/TopicDetail.tsx (added confirmation modal and DELETE API call)
+  - src/index.ts (added DELETE /api/topics/:id endpoint)
+  - src/delete-topic.test.ts (created comprehensive tests)
+  - package.json (added @radix-ui/react-dialog dependency)
+  - bun.lock (updated with new dependency)
+- What was implemented:
+  - Created Dialog UI component using Radix UI primitives (Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger, DialogOverlay)
+  - Added DELETE /api/topics/:id endpoint that soft deletes topics and cascades to ideas:
+    - Checks topic exists and is not archived (404 if not found or already archived)
+    - Sets isArchived=1 on topic with updated timestamp
+    - Sets isArchived=1 on all ideas in topic with updated timestamp (cascade)
+    - Returns success JSON response
+  - Updated TopicDetail component:
+    - Added deleteDialogOpen state to control modal visibility
+    - Added isDeleting state for loading/disabled buttons
+    - Replaced simple confirm() with Radix Dialog component
+    - Dialog shows topic name in confirmation message
+    - Dialog has Cancel button (closes modal) and Confirm button (calls DELETE API)
+    - Buttons are disabled during deletion, Confirm shows "Deleting..." text
+    - On successful DELETE, navigates to dashboard (/)
+    - On error, logs error and closes modal without navigating
+  - Added 3 tests for DELETE endpoint:
+    - Test soft delete and cascade to ideas
+    - Test 404 for non-existent topic
+    - Test 404 for already archived topic
+  - Archived topics already return 404 from GET /api/topics/:id endpoint (line 197-199)
+  - All 18 tests pass (15 existing + 3 new)
+  - Build succeeds without errors
+- **Learnings for future iterations:**
+  - Radix UI provides accessible dialog primitives (Dialog, DialogContent, DialogHeader, etc.)
+  - Dialog uses fixed positioning with transform for centering: left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]
+  - Dialog animations: data-[state=open] for fade-in/zoom-in, data-[state=closed] for fade-out/zoom-out
+  - DialogClose component provides close button (X) in top-right corner
+  - DialogFooter uses flex-col-reverse for mobile, sm:flex-row sm:justify-end for desktop
+  - Soft delete uses UPDATE queries, not DELETE (isArchived=1 instead of removing rows)
+  - Cascade soft delete: run UPDATE on ideas table with WHERE topicId = ?
+  - Two UPDATE queries are efficient (no N+1 problem)
+  - Client-side navigation after successful API call: navigate("/")
+  - Error handling: setDeleteDialogOpen(false) on error to allow retry
+  - Disabled state on buttons during async operation prevents double-submission
+  - Loading text in button: isDeleting ? "Deleting..." : "Confirm"
+ ---
 ## [Fri Jan 16 2026] - US-006: Edit topic
 Thread:
 Run: 20260116-075521-53841 (iteration 6)
