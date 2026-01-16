@@ -82,6 +82,85 @@ const server = serve({
           return Response.json({ error: "Failed to fetch topics" }, { status: 500 });
         }
       },
+
+      async POST(req) {
+        try {
+          const body = await req.json();
+          const { name, description, tags } = body;
+
+          if (!name || typeof name !== "string" || name.trim() === "") {
+            return Response.json({ error: "Name is required" }, { status: 400 });
+          }
+
+          const topicId = crypto.randomUUID();
+          const now = new Date().toISOString();
+
+          db.query(`
+            INSERT INTO topics (id, name, description, isArchived, createdAt, updatedAt)
+            VALUES (?, ?, ?, 0, ?, ?)
+          `).run(topicId, name.trim(), description || null, now, now);
+
+          const tagIds: string[] = [];
+
+          if (tags && Array.isArray(tags) && tags.length > 0) {
+            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)");
+            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)");
+
+            for (const tag of tags) {
+              const tagName = tag.trim();
+              if (!tagName) continue;
+
+              const existingTag = getTagId.get(tagName) as { id: string } | undefined;
+
+              if (existingTag) {
+                tagIds.push(existingTag.id);
+              } else {
+                const tagId = crypto.randomUUID();
+                insertTag.run(tagId, tagName);
+                tagIds.push(tagId);
+              }
+            }
+
+            const linkTag = db.query("INSERT OR IGNORE INTO topic_tags (topicId, tagId) VALUES (?, ?)");
+            for (const tagId of tagIds) {
+              linkTag.run(topicId, tagId);
+            }
+          }
+
+          const topic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as {
+            id: string;
+            name: string;
+            description: string | null;
+            isArchived: number;
+            createdAt: string;
+            updatedAt: string;
+          };
+
+          return Response.json({
+            id: topic.id,
+            name: topic.name,
+            description: topic.description,
+            isArchived: topic.isArchived === 1,
+            createdAt: topic.createdAt,
+            updatedAt: topic.updatedAt,
+          });
+        } catch (error) {
+          console.error("Error creating topic:", error);
+          return Response.json({ error: "Failed to create topic" }, { status: 500 });
+        }
+      },
+    },
+
+    "/api/tags": {
+      async GET() {
+        try {
+          const tags = db.query("SELECT name FROM tags ORDER BY LOWER(name)").all() as Array<{ name: string }>;
+          return Response.json(tags.map(t => t.name));
+        } catch (error) {
+          console.error("Error fetching tags:", error);
+          return Response.json({ error: "Failed to fetch tags" }, { status: 500 });
+        }
+      },
     },
   },
 
