@@ -1,6 +1,7 @@
 # Activity Log
 
 ## Run Summary
+- 2026-01-16 08:17:53 | run=20260116-075521-53841 | iter=2 | mode=build | story=US-002 | duration=885s | status=success
 - 2026-01-16 08:03:06 | run=20260116-075521-53841 | iter=1 | mode=build | story=US-001 | duration=465s | status=success
 
 ## Events
@@ -11,3 +12,8 @@
 [2026-01-16 08:03:37] Starting US-002: Setup SQLite database schema
 [2026-01-16 08:06:33] All quality gates passed for US-002
 [2026-01-16 08:14:53] US-002 completed: all acceptance criteria verified
+[2026-01-16 08:17:53] ITERATION 2 end (duration=885s)
+[2026-01-16 08:17:56] ITERATION 3 start (mode=build story=US-003)
+[2026-01-16 08:18:25] Starting work on US-003: Create dashboard with topic list
+[2026-01-16 08:33:36] Major code changes: Added react-router-dom, created Dashboard/Archive/NewTopic components, added /api/topics endpoint, created types file and seed script
+[2026-01-16 08:33:36] Tests and verification: bun test (pass), bun run build (pass), browser testing on desktop and mobile

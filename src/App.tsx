@@ -1,8 +1,18 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Dashboard } from "@/components/Dashboard";
+import { Archive } from "@/components/Archive";
+import { NewTopic } from "@/components/NewTopic";
+
 export function App() {
   return (
-    <div className="container mx-auto p-8 text-center">
-      <h1 className="text-4xl font-bold">Hello World</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/archive" element={<Archive />} />
+        <Route path="/topics/new" element={<NewTopic />} />
+        <Route path="/topics/:id" element={<NewTopic />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
