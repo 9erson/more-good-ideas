@@ -30,6 +30,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # database
 data/
 
+# opencode (development tool)
+.opencode/
+
 # IntelliJ based IDEs
 .idea
 
