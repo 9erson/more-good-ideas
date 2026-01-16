@@ -672,3 +672,11 @@ nothing added to commit but untracked files present (use "git add" to track)
 
  M .ralph/runs/run-20260116-075521-53841-iter-1.log
 
+[91m[1m| [0m[90m Bash     [0mFinal commit and verify clean
+
+[main d1b6f14] chore(ralph): final run log update
+ 1 file changed, 13 insertions(+)
+
+[96m[1m| [0m[90m Read     [0m.ralph/progress.md
+[92m[1m| [0m[90m Edit     [0m.ralph/progress.md
+<promise>COMPLETE</promise>
