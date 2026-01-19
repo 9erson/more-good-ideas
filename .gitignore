@@ -33,6 +33,14 @@ data/
 # opencode (development tool)
 .opencode/
 
+# flow workflow (development tool)
+.flow/
+flow/
+
+# playwright test reports and results
+playwright-report/
+test-results/
+
 # IntelliJ based IDEs
 .idea
 

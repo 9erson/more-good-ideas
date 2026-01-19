@@ -355,7 +355,7 @@
     {
       "id": "US-007",
       "title": "Delete topic",
-      "status": "in_progress",
+      "status": "done",
       "dependsOn": [
         "US-005"
       ],
@@ -372,13 +372,13 @@
         "Run bun test, bun run lint, bun run typecheck"
       ],
       "startedAt": "2026-01-16T03:40:01.078654+00:00",
-      "completedAt": null,
-      "updatedAt": "2026-01-16T03:40:01.078845+00:00"
+      "completedAt": "2026-01-16T03:50:06.088155+00:00",
+      "updatedAt": "2026-01-16T03:50:06.088011+00:00"
     },
     {
       "id": "US-008",
       "title": "Create new idea",
-      "status": "open",
+      "status": "in_progress",
       "dependsOn": [
         "US-004"
       ],
@@ -396,7 +396,10 @@
         "Negative case: submit without topic or name shows validation",
         "Tags are case-insensitive",
         "Run bun test, bun run lint, bun run typecheck"
-      ]
+      ],
+      "startedAt": "2026-01-16T03:50:08.151794+00:00",
+      "completedAt": null,
+      "updatedAt": "2026-01-16T03:50:08.151999+00:00"
     },
     {
       "id": "US-009",

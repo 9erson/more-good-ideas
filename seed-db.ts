@@ -12,21 +12,25 @@ const topics = [
     id: randomUUID(),
     name: "Startup Ideas",
     description: "Potential business ideas and concepts to explore",
+    isArchived: 0,
   },
   {
     id: randomUUID(),
     name: "Book Recommendations",
     description: "Books to read and share",
+    isArchived: 0,
   },
   {
     id: randomUUID(),
     name: "Personal Development",
     description: "Goals and plans for self-improvement",
+    isArchived: 0,
   },
   {
     id: randomUUID(),
     name: "Archived Project",
     description: "This should not appear on the dashboard",
+    isArchived: 1,
   },
 ];
 
@@ -38,28 +42,28 @@ const tags = [
 ];
 
 const topicTags = [
-  { topicId: topics[0].id, tagId: tags[0].id },
-  { topicId: topics[0].id, tagId: tags[1].id },
-  { topicId: topics[1].id, tagId: tags[2].id },
-  { topicId: topics[2].id, tagId: tags[2].id },
-  { topicId: topics[2].id, tagId: tags[3].id },
+  { topicId: topics[0]!.id, tagId: tags[0]!.id },
+  { topicId: topics[0]!.id, tagId: tags[1]!.id },
+  { topicId: topics[1]!.id, tagId: tags[2]!.id },
+  { topicId: topics[2]!.id, tagId: tags[2]!.id },
+  { topicId: topics[2]!.id, tagId: tags[3]!.id },
 ];
 
 const ideas = [
-  { id: randomUUID(), topicId: topics[0].id, name: "AI Assistant Service" },
-  { id: randomUUID(), topicId: topics[0].id, name: "Mobile Payment App" },
-  { id: randomUUID(), topicId: topics[0].id, name: "Remote Work Platform" },
-  { id: randomUUID(), topicId: topics[1].id, name: "Atomic Habits" },
-  { id: randomUUID(), topicId: topics[2].id, name: "Morning Routine" },
-  { id: randomUUID(), topicId: topics[3].id, name: "Old Archived Idea" },
+  { id: randomUUID(), topicId: topics[0]!.id, name: "AI Assistant Service" },
+  { id: randomUUID(), topicId: topics[0]!.id, name: "Mobile Payment App" },
+  { id: randomUUID(), topicId: topics[0]!.id, name: "Remote Work Platform" },
+  { id: randomUUID(), topicId: topics[1]!.id, name: "Atomic Habits" },
+  { id: randomUUID(), topicId: topics[2]!.id, name: "Morning Routine" },
+  { id: randomUUID(), topicId: topics[3]!.id, name: "Old Archived Idea" },
 ];
 
 db.query(
   "INSERT INTO topics (id, name, description, isArchived, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)"
 ).run(
-  topics[0].id,
-  topics[0].name,
-  topics[0].description,
+  topics[0]!.id,
+  topics[0]!.name,
+  topics[0]!.description,
   0,
   now,
   now
@@ -68,9 +72,9 @@ db.query(
 db.query(
   "INSERT INTO topics (id, name, description, isArchived, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)"
 ).run(
-  topics[1].id,
-  topics[1].name,
-  topics[1].description,
+  topics[1]!.id,
+  topics[1]!.name,
+  topics[1]!.description,
   0,
   now,
   now
@@ -79,9 +83,9 @@ db.query(
 db.query(
   "INSERT INTO topics (id, name, description, isArchived, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)"
 ).run(
-  topics[2].id,
-  topics[2].name,
-  topics[2].description,
+  topics[2]!.id,
+  topics[2]!.name,
+  topics[2]!.description,
   0,
   now,
   now
@@ -90,9 +94,9 @@ db.query(
 db.query(
   "INSERT INTO topics (id, name, description, isArchived, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)"
 ).run(
-  topics[3].id,
-  topics[3].name,
-  topics[3].description,
+  topics[3]!.id,
+  topics[3]!.name,
+  topics[3]!.description,
   1,
   now,
   now

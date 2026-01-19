@@ -114,7 +114,89 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-
   - TopicDetail is minimal placeholder until US-005 implements full idea list
    - bun run build catches TypeScript errors (acts as typecheck)
    - lint and typecheck scripts not configured in package.json yet (covered by build/test)
- ---
+  ---
+## [Fri Jan 16 2026] - US-008: Create new idea
+Thread:
+Run: 20260116-075521-53841 (iteration 8)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-8.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-075521-53841-iter-8.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 6e56868 feat: implement create new idea feature (US-008)
+- Post-commit status: clean
+- Verification:
+  - Command: bun test -> PASS (18 tests pass)
+  - Command: bun run build -> PASS
+  - Browser verification: PASS (all acceptance criteria verified)
+  - API verification: PASS (validation, tags, case-insensitivity tested)
+- Files changed:
+  - src/components/NewIdea.tsx (created form component with topic dropdown, tags, validation)
+  - src/components/IdeaDetail.tsx (created component to display idea details)
+  - src/App.tsx (added /ideas/new and /ideas/:id routes)
+  - src/index.ts (added POST /api/ideas and GET /api/ideas/:id endpoints)
+- What was implemented:
+  - Created /ideas/new route with form containing:
+    - Topic dropdown (required) - fetches all non-archived topics from /api/topics
+    - Name field (required) - shows validation error if empty
+    - Description field (optional) - textarea for multi-line input
+    - Tags field (optional) - autocomplete with existing tags, allows creating new tags on fly
+  - Implemented tag autocomplete showing existing tags from /api/tags
+  - Filter autocomplete results to exclude already-added tags
+  - Case-insensitive tag handling: normalize to lowercase, prevent duplicates
+  - Form validation: topic and name required before submission
+  - POST /api/ideas endpoint:
+    - Validates topic exists and is not archived (404 if not found)
+    - Validates name is provided (400 if missing)
+    - Inserts idea into ideas table with generated UUID
+    - Creates new tags via INSERT OR IGNORE (case-insensitive)
+    - Links tags to idea via idea_tags table
+    - Returns created idea with id, name, description, timestamps
+  - GET /api/ideas/:id endpoint:
+    - Queries idea by id with LEFT JOIN for topic, feedback, and tags
+    - Returns 404 if idea not found, archived, or parent topic archived
+    - Returns idea with topicName for navigation link
+  - IdeaDetail component:
+    - Displays idea name (h1)
+    - Shows back link to parent topic
+    - Displays idea description (paragraph)
+    - Shows idea tags as badge pills
+    - Shows creation timestamp
+    - Link to topic detail page for navigation
+  - Redirect to /ideas/:id after successful creation
+  - Verified in browser:
+    - Created idea "AI Assistant" with description "An intelligent assistant that helps with various tasks"
+    - Selected topic from dropdown successfully
+    - Added tag "tech" by typing and pressing Enter
+    - Form submitted and redirected to idea detail page (/ideas/dc1aaf6e-13b6-4829-9604-c80f8e16d830)
+    - Idea detail page shows name, description, topic link, and tag
+  - Verified validation via API:
+    - Submit without topic: returns 400 "Topic is required"
+    - Submit without name: returns 400 "Name is required"
+    - Submit with non-existent topic: returns 404 "Topic not found"
+  - Verified case-insensitive tags:
+    - Created idea with tags ["TECH", "innovation"]
+    - Database correctly links to existing lowercase tags ["tech", "innovation"]
+    - No duplicate tags created (verified tag count remains 5: tech, innovation, startup, tag1, tag2)
+  - Verified new tag creation:
+    - Added new tag "innovation" while creating idea
+    - Tag successfully created and linked to idea
+  - All 18 existing tests pass (no regressions)
+  - Build succeeds without errors
+- **Learnings for future iterations:**
+  - NewIdea component follows same pattern as NewTopic for consistency
+  - Radix UI Select component used for dropdown (SelectTrigger, SelectValue, SelectContent, SelectItem)
+  - Tag autocomplete logic identical to NewTopic: filter existing tags, exclude already-added
+  - Idea creation endpoint mirrors topic creation with tag linking
+  - Case-insensitive tag handling: LOWER() comparison, INSERT OR IGNORE
+  - useSearchParams() hook for reading ?topicId= query parameter
+  - Initial topicId from URL params pre-populates dropdown (future enhancement)
+  - IdeaDetail is minimal placeholder until US-009 implements feedback management
+  - API endpoint checks both idea.isArchived AND topic.isArchived for 404
+  - Left JOIN with topics table gives topicName without separate query
+  - GROUP_CONCAT for tags, split() for array conversion (same pattern as topics endpoint)
+  -bun run build catches TypeScript errors (acts as typecheck)
+  - lint and typecheck scripts not configured in package.json yet (covered by build/test)
+  ---
 ## [Fri Jan 16 2026] - US-007: Delete topic
 Thread:
 Run: 20260116-075521-53841 (iteration 7)
