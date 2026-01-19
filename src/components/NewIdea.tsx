@@ -1,105 +1,105 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState } from "react"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 
 type Topic = {
-  id: string;
-  name: string;
-  description: string | null;
-};
+  id: string
+  name: string
+  description: string | null
+}
 
 export function NewIdea() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const initialTopicId = searchParams.get("topicId");
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const initialTopicId = searchParams.get("topicId")
 
-  const [topicId, setTopicId] = useState(initialTopicId || "");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [existingTags, setExistingTags] = useState<string[]>([]);
-  const [filteredTags, setFilteredTags] = useState<string[]>([]);
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [topicId, setTopicId] = useState(initialTopicId || "")
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [tagInput, setTagInput] = useState("")
+  const [tags, setTags] = useState<string[]>([])
+  const [existingTags, setExistingTags] = useState<string[]>([])
+  const [filteredTags, setFilteredTags] = useState<string[]>([])
+  const [showAutocomplete, setShowAutocomplete] = useState(false)
+  const [topics, setTopics] = useState<Topic[]>([])
+  const [error, setError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [topicsRes, tagsRes] = await Promise.all([fetch("/api/topics"), fetch("/api/tags")]);
+        const [topicsRes, tagsRes] = await Promise.all([fetch("/api/topics"), fetch("/api/tags")])
 
         if (topicsRes.ok) {
-          const topicsData = await topicsRes.json();
-          setTopics(topicsData);
+          const topicsData = await topicsRes.json()
+          setTopics(topicsData)
         }
 
         if (tagsRes.ok) {
-          const tagsData = await tagsRes.json();
-          setExistingTags(tagsData);
+          const tagsData = await tagsRes.json()
+          setExistingTags(tagsData)
         }
       } catch (err) {
-        console.error("Failed to fetch data:", err);
+        console.error("Failed to fetch data:", err)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const handleTagInputChange = (value: string) => {
-    setTagInput(value);
+    setTagInput(value)
     if (value.trim()) {
       const filtered = existingTags.filter(
-        tag => tag.toLowerCase().includes(value.toLowerCase()) && !tags.includes(tag)
-      );
-      setFilteredTags(filtered);
-      setShowAutocomplete(true);
+        (tag) => tag.toLowerCase().includes(value.toLowerCase()) && !tags.includes(tag)
+      )
+      setFilteredTags(filtered)
+      setShowAutocomplete(true)
     } else {
-      setShowAutocomplete(false);
+      setShowAutocomplete(false)
     }
-  };
+  }
 
   const handleAddTag = (tag: string) => {
-    const normalizedTag = tag.trim().toLowerCase();
-    const hasTag = tags.some(t => t.toLowerCase() === normalizedTag);
+    const normalizedTag = tag.trim().toLowerCase()
+    const hasTag = tags.some((t) => t.toLowerCase() === normalizedTag)
 
     if (!hasTag && normalizedTag) {
-      setTags([...tags, tag.trim()]);
+      setTags([...tags, tag.trim()])
     }
-    setTagInput("");
-    setShowAutocomplete(false);
-  };
+    setTagInput("")
+    setShowAutocomplete(false)
+  }
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove));
-  };
+    setTags(tags.filter((t) => t !== tagToRemove))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+    e.preventDefault()
+    setError("")
 
     if (!topicId) {
-      setError("Topic is required");
-      return;
+      setError("Topic is required")
+      return
     }
 
     if (!name.trim()) {
-      setError("Name is required");
-      return;
+      setError("Name is required")
+      return
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     try {
       const res = await fetch("/api/ideas", {
@@ -113,20 +113,20 @@ export function NewIdea() {
           description: description.trim() || null,
           tags,
         }),
-      });
+      })
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to create idea");
+        const data = await res.json()
+        throw new Error(data.error || "Failed to create idea")
       }
 
-      const idea = await res.json();
-      navigate(`/ideas/${idea.id}`);
+      const idea = await res.json()
+      navigate(`/ideas/${idea.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create idea");
-      setIsSubmitting(false);
+      setError(err instanceof Error ? err.message : "Failed to create idea")
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -153,9 +153,7 @@ export function NewIdea() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">
-                {error}
-              </div>
+              <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">{error}</div>
             )}
 
             <div className="space-y-2">
@@ -165,7 +163,7 @@ export function NewIdea() {
                   <SelectValue placeholder="Select a topic" />
                 </SelectTrigger>
                 <SelectContent>
-                  {topics.map(topic => (
+                  {topics.map((topic) => (
                     <SelectItem key={topic.id} value={topic.id}>
                       {topic.name}
                     </SelectItem>
@@ -180,7 +178,7 @@ export function NewIdea() {
                 id="name"
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Idea name"
                 className={error && !name.trim() ? "border-destructive" : ""}
               />
@@ -191,7 +189,7 @@ export function NewIdea() {
               <Textarea
                 id="description"
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description of this idea"
                 rows={3}
               />
@@ -204,11 +202,11 @@ export function NewIdea() {
                   id="tags"
                   type="text"
                   value={tagInput}
-                  onChange={e => handleTagInputChange(e.target.value)}
-                  onKeyDown={e => {
+                  onChange={(e) => handleTagInputChange(e.target.value)}
+                  onKeyDown={(e) => {
                     if (e.key === "Enter" && tagInput.trim()) {
-                      e.preventDefault();
-                      handleAddTag(tagInput);
+                      e.preventDefault()
+                      handleAddTag(tagInput)
                     }
                   }}
                   placeholder="Add a tag and press Enter"
@@ -216,7 +214,7 @@ export function NewIdea() {
                 />
                 {showAutocomplete && filteredTags.length > 0 && (
                   <ul className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-md max-h-60 overflow-y-auto">
-                    {filteredTags.map(tag => (
+                    {filteredTags.map((tag) => (
                       <li
                         key={tag}
                         className="px-3 py-2 hover:bg-muted cursor-pointer"
@@ -230,7 +228,7 @@ export function NewIdea() {
               </div>
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {tags.map(tag => (
+                  {tags.map((tag) => (
                     <span
                       key={tag}
                       className="inline-flex items-center gap-1 px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-sm"
@@ -261,5 +259,5 @@ export function NewIdea() {
         </div>
       </main>
     </div>
-  );
+  )
 }

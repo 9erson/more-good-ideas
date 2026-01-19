@@ -1,8 +1,7 @@
-import { Link, useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import type { Idea } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -10,67 +9,68 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
+import type { Idea } from "@/lib/types"
 
 export function TopicDetail() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [topic, setTopic] = useState<{
-    id: string;
-    name: string;
-    description: string | null;
-    tags: string[];
-    ideas: Idea[];
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+    id: string
+    name: string
+    description: string | null
+    tags: string[]
+    ideas: Idea[]
+  } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const fetchTopic = async () => {
       try {
-        const res = await fetch(`/api/topics/${id}`);
+        const res = await fetch(`/api/topics/${id}`)
         if (res.status === 404) {
-          setNotFound(true);
-          setTopic(null);
+          setNotFound(true)
+          setTopic(null)
         } else if (res.ok) {
-          const data = await res.json();
-          setTopic(data);
+          const data = await res.json()
+          setTopic(data)
         }
       } catch (err) {
-        console.error("Failed to fetch topic:", err);
-        setNotFound(true);
+        console.error("Failed to fetch topic:", err)
+        setNotFound(true)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchTopic();
-  }, [id]);
+    fetchTopic()
+  }, [id])
 
   const handleDelete = async () => {
-    if (!topic) return;
+    if (!topic) return
 
-    setIsDeleting(true);
+    setIsDeleting(true)
 
     try {
       const res = await fetch(`/api/topics/${topic.id}`, {
         method: "DELETE",
-      });
+      })
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to delete topic");
+        const data = await res.json()
+        throw new Error(data.error || "Failed to delete topic")
       }
 
-      navigate("/");
+      navigate("/")
     } catch (err) {
-      console.error("Failed to delete topic:", err);
-      setIsDeleting(false);
-      setDeleteDialogOpen(false);
+      console.error("Failed to delete topic:", err)
+      setIsDeleting(false)
+      setDeleteDialogOpen(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -87,7 +87,7 @@ export function TopicDetail() {
           <p>Loading...</p>
         </main>
       </div>
-    );
+    )
   }
 
   if (notFound || !topic) {
@@ -105,7 +105,7 @@ export function TopicDetail() {
           <p>Topic not found</p>
         </main>
       </div>
-    );
+    )
   }
 
   return (
@@ -124,10 +124,12 @@ export function TopicDetail() {
           <header className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
               <h1 className="text-3xl font-bold">{topic.name}</h1>
-              {topic.description && <p className="text-muted-foreground mt-2">{topic.description}</p>}
+              {topic.description && (
+                <p className="text-muted-foreground mt-2">{topic.description}</p>
+              )}
               {topic.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
-                  {topic.tags.map(tag => (
+                  {topic.tags.map((tag) => (
                     <span
                       key={tag}
                       className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground"
@@ -152,9 +154,7 @@ export function TopicDetail() {
           </header>
 
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">
-              Ideas ({topic.ideas.length})
-            </h2>
+            <h2 className="text-xl font-semibold">Ideas ({topic.ideas.length})</h2>
 
             {topic.ideas.length === 0 ? (
               <div className="text-center py-12 border border-dashed rounded-lg">
@@ -165,7 +165,7 @@ export function TopicDetail() {
               </div>
             ) : (
               <div className="grid gap-4">
-                {topic.ideas.map(idea => (
+                {topic.ideas.map((idea) => (
                   <Link key={idea.id} to={`/ideas/${idea.id}`}>
                     <Card className="transition-all hover:shadow-md hover:border-primary cursor-pointer">
                       <CardHeader>
@@ -179,7 +179,9 @@ export function TopicDetail() {
                           {idea.feedback && (
                             <div className="flex items-center gap-1 text-yellow-500">
                               <span>{"★".repeat(idea.feedback.rating)}</span>
-                              <span className="text-muted-foreground text-sm">({idea.feedback.rating}/5)</span>
+                              <span className="text-muted-foreground text-sm">
+                                ({idea.feedback.rating}/5)
+                              </span>
                             </div>
                           )}
                         </div>
@@ -187,7 +189,7 @@ export function TopicDetail() {
                       <CardContent>
                         {idea.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2">
-                            {idea.tags.map(tag => (
+                            {idea.tags.map((tag) => (
                               <span
                                 key={tag}
                                 className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground"
@@ -212,11 +214,16 @@ export function TopicDetail() {
           <DialogHeader>
             <DialogTitle>Delete Topic</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{topic?.name}"? This will archive the topic and all its ideas. This action cannot be undone.
+              Are you sure you want to delete "{topic?.name}"? This will archive the topic and all
+              its ideas. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
@@ -226,5 +233,5 @@ export function TopicDetail() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import type { PlaywrightTestConfig } from "playwright/test";
+import type { PlaywrightTestConfig } from "playwright/test"
 
 const config: PlaywrightTestConfig = {
   testDir: "./e2e",
@@ -10,7 +10,7 @@ const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 4,
-  reporter: "html",
+  reporter: [["list"]],
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
@@ -35,6 +35,6 @@ const config: PlaywrightTestConfig = {
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },
-};
+}
 
-export default config;
+export default config

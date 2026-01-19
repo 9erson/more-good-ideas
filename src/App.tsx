@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Dashboard } from "@/components/Dashboard";
-import { Archive } from "@/components/Archive";
-import { NewTopic } from "@/components/NewTopic";
-import { TopicDetail } from "@/components/TopicDetail";
-import { EditTopic } from "@/components/EditTopic";
-import { NewIdea } from "@/components/NewIdea";
-import { IdeaDetail } from "@/components/IdeaDetail";
+import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { Archive } from "@/components/Archive"
+import { Dashboard } from "@/components/Dashboard"
+import { EditTopic } from "@/components/EditTopic"
+import { IdeaDetail } from "@/components/IdeaDetail"
+import { NewIdea } from "@/components/NewIdea"
+import { NewTopic } from "@/components/NewTopic"
+import { TopicDetail } from "@/components/TopicDetail"
 
 export function App() {
   return (
@@ -20,7 +20,7 @@ export function App() {
         <Route path="/ideas/:id" element={<IdeaDetail />} />
       </Routes>
     </BrowserRouter>
-  );
+  )
 }
 
-export default App;
+export default App

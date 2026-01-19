@@ -1,33 +1,33 @@
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import type { Topic } from "@/lib/types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import * as React from "react"
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { Topic } from "@/lib/types"
 
 export function Dashboard() {
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [topics, setTopics] = useState<Topic[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchTopics() {
       try {
-        const response = await fetch("/api/topics");
+        const response = await fetch("/api/topics")
         if (!response.ok) {
-          throw new Error("Failed to fetch topics");
+          throw new Error("Failed to fetch topics")
         }
-        const data = await response.json();
-        setTopics(data);
+        const data = await response.json()
+        setTopics(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : "An error occurred")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
 
-    fetchTopics();
-  }, []);
+    fetchTopics()
+  }, [])
 
   return (
     <div className="flex min-h-screen">
@@ -74,7 +74,7 @@ export function Dashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topics.map(topic => (
+              {topics.map((topic) => (
                 <Link key={topic.id} to={`/topics/${topic.id}`}>
                   <Card className="h-full transition-all hover:shadow-md hover:border-primary cursor-pointer">
                     <CardHeader>
@@ -83,7 +83,7 @@ export function Dashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {topic.tags.map(tag => (
+                        {topic.tags.map((tag) => (
                           <span
                             key={tag}
                             className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground"
@@ -112,5 +112,5 @@ export function Dashboard() {
         </div>
       </main>
     </div>
-  );
+  )
 }

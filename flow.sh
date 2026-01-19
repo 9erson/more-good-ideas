@@ -3,6 +3,8 @@
 # Kept -u (error on unset variables) and -o pipefail for safety.
 set -uo pipefail
 
+SKIP_SETUP=false
+
 # ==============================================================================
 # CONFIGURATION
 # ==============================================================================
@@ -23,10 +25,10 @@ section() {
     gum style --foreground 212 --bold --border normal --padding "0 1" "$1"
 }
 
-log_info() { gum log --level info "$1"; }
-log_warn() { gum log --level warn "$1"; }
-log_error() { gum log --level error "$1"; }
-log_success() { gum log --level info "$1"; }
+log_info() { gum log --level info -- "$1"; }
+log_warn() { gum log --level warn -- "$1"; }
+log_error() { gum log --level error -- "$1"; }
+log_success() { gum log --level info -- "$1"; }
 
 run_with_timer() {
     local description="$1"
@@ -36,12 +38,13 @@ run_with_timer() {
     log_info "Starting: $description"
     start_time=$(date +%s)
 
-    # Use '|| true' inside the subshell so the failure is captured in the file
-    # but doesn't trigger 'set -e' if it's ever re-enabled.
-    gum spin \
-        --spinner dot \
-        --title "$description in progress..." \
-        -- bash -c "$command &> \"$output_file\" || true"
+    eval "$command" | tee "$output_file" | while read -r line; do
+        # If $line is empty, skip it to avoid gum errors
+        [[ -z "$line" ]] && continue
+        
+        # Added -- before "$line"
+        gum log --prefix "Terminal" --level info -- "$line"
+    done
 
     end_time=$(date +%s)
     duration=$((end_time - start_time))
@@ -52,25 +55,32 @@ run_with_timer() {
 agent() {
     local prompt="$1"
     # Stream the output through gum log
-    # --prefix gives it that 'Agent' identity
     opencode run "$prompt" | while read -r line; do
-        gum log --prefix "Agent" --level info "$line"
+        # If $line is empty, skip it to avoid gum errors
+        [[ -z "$line" ]] && continue
+        
+        # Added -- before "$line"
+        gum log --prefix "Agent" --level info -- "$line"
     done
 }
 
 # ==============================================================================
 # SETUP
 # ==============================================================================
-section "Flow Initialization"
-rm -rf "$FLOW_DIR"
-mkdir -p "$CHECKS_FOLDER"
-log_success "Flow directory ready at $FLOW_DIR"
+if ! $SKIP_SETUP; then    
+    section "Flow Initialization"
+    rm -rf "$FLOW_DIR"
+    mkdir -p "$CHECKS_FOLDER"
+    log_success "Flow directory ready at $FLOW_DIR"
+fi
 
 # ==============================================================================
 # TECH STACK
 # ==============================================================================
-section "Tech Stack Validation"
-agent "Ensure the following tech stack is installed: bun, biome, git, shadcn, tailwind, react, playwright. Ensure the playwright config has fullyParallel: true, and workers: 4. Do not run any tests or update code. Just ensure the tech stack is installed. If it's not, then install it. Finally, give a summary of your findings."
+if ! $SKIP_SETUP; then
+    section "Tech Stack Validation"
+    agent "Ensure the following tech stack is installed: bun, biome, git, shadcn, tailwind, react, playwright. Ensure the playwright config has fullyParallel: true, and workers: 4, and output is not interactive html. Do not run any tests or update code. Just ensure the tech stack is installed. If it's not, then install it. Finally, give a summary of your findings."
+fi
 
 # ==============================================================================
 # HEALTH CHECKS

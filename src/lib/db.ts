@@ -1,13 +1,13 @@
-import { Database } from "bun:sqlite";
-import { mkdirSync } from "node:fs";
+import { Database } from "bun:sqlite"
+import { mkdirSync } from "node:fs"
 
-const DB_PATH = "data/database.sqlite";
+const DB_PATH = "data/database.sqlite"
 
 export function getDatabase(): Database {
-  mkdirSync("data", { recursive: true });
-  const db = new Database(DB_PATH);
-  db.exec("PRAGMA foreign_keys = ON");
-  return db;
+  mkdirSync("data", { recursive: true })
+  const db = new Database(DB_PATH)
+  db.exec("PRAGMA foreign_keys = ON")
+  return db
 }
 
 export function initDatabase(db: Database): void {
@@ -72,5 +72,5 @@ export function initDatabase(db: Database): void {
     -- Indexes for foreign keys
     CREATE INDEX IF NOT EXISTS idx_ideas_topicId ON ideas(topicId);
     CREATE INDEX IF NOT EXISTS idx_feedback_ideaId ON feedback(ideaId);
-  `);
+  `)
 }

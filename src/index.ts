@@ -1,8 +1,8 @@
-import { serve } from "bun";
-import index from "./index.html";
-import { getDatabase } from "./lib/db";
+import { serve } from "bun"
+import index from "./index.html"
+import { getDatabase } from "./lib/db"
 
-const db = getDatabase();
+const db = getDatabase()
 
 const server = serve({
   routes: {
@@ -14,27 +14,28 @@ const server = serve({
         return Response.json({
           message: "Hello, world!",
           method: "GET",
-        });
+        })
       },
       async PUT(req) {
         return Response.json({
           message: "Hello, world!",
           method: "PUT",
-        });
+        })
       },
     },
 
-    "/api/hello/:name": async req => {
-      const name = req.params.name;
+    "/api/hello/:name": async (req) => {
+      const name = req.params.name
       return Response.json({
         message: `Hello, ${name}!`,
-      });
+      })
     },
 
     "/api/topics": {
       async GET() {
         try {
-          const topics = db.query(`
+          const topics = db
+            .query(`
             SELECT 
               t.id,
               t.name,
@@ -54,18 +55,19 @@ const server = serve({
             WHERE t.isArchived = 0
             GROUP BY t.id
             ORDER BY t.createdAt DESC
-          `).all() as Array<{
-            id: string;
-            name: string;
-            description: string | null;
-            isArchived: number;
-            createdAt: string;
-            updatedAt: string;
-            ideaCount: number;
-            tags: string | null;
-          }>;
+          `)
+            .all() as Array<{
+            id: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+            ideaCount: number
+            tags: string | null
+          }>
 
-          const formattedTopics = topics.map(topic => ({
+          const formattedTopics = topics.map((topic) => ({
             id: topic.id,
             name: topic.name,
             description: topic.description,
@@ -74,67 +76,69 @@ const server = serve({
             tags: topic.tags ? topic.tags.split(",") : [],
             createdAt: topic.createdAt,
             updatedAt: topic.updatedAt,
-          }));
+          }))
 
-          return Response.json(formattedTopics);
+          return Response.json(formattedTopics)
         } catch (error) {
-          console.error("Error fetching topics:", error);
-          return Response.json({ error: "Failed to fetch topics" }, { status: 500 });
+          console.error("Error fetching topics:", error)
+          return Response.json({ error: "Failed to fetch topics" }, { status: 500 })
         }
       },
 
       async POST(req) {
         try {
-          const body = await req.json();
-          const { name, description, tags } = body;
+          const body = await req.json()
+          const { name, description, tags } = body
 
           if (!name || typeof name !== "string" || name.trim() === "") {
-            return Response.json({ error: "Name is required" }, { status: 400 });
+            return Response.json({ error: "Name is required" }, { status: 400 })
           }
 
-          const topicId = crypto.randomUUID();
-          const now = new Date().toISOString();
+          const topicId = crypto.randomUUID()
+          const now = new Date().toISOString()
 
           db.query(`
             INSERT INTO topics (id, name, description, isArchived, createdAt, updatedAt)
             VALUES (?, ?, ?, 0, ?, ?)
-          `).run(topicId, name.trim(), description || null, now, now);
+          `).run(topicId, name.trim(), description || null, now, now)
 
-          const tagIds: string[] = [];
+          const tagIds: string[] = []
 
           if (tags && Array.isArray(tags) && tags.length > 0) {
-            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)");
-            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)");
+            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)")
+            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)")
 
             for (const tag of tags) {
-              const tagName = tag.trim();
-              if (!tagName) continue;
+              const tagName = tag.trim()
+              if (!tagName) continue
 
-              const existingTag = getTagId.get(tagName) as { id: string } | undefined;
+              const existingTag = getTagId.get(tagName) as { id: string } | undefined
 
               if (existingTag) {
-                tagIds.push(existingTag.id);
+                tagIds.push(existingTag.id)
               } else {
-                const tagId = crypto.randomUUID();
-                insertTag.run(tagId, tagName);
-                tagIds.push(tagId);
+                const tagId = crypto.randomUUID()
+                insertTag.run(tagId, tagName)
+                tagIds.push(tagId)
               }
             }
 
-            const linkTag = db.query("INSERT OR IGNORE INTO topic_tags (topicId, tagId) VALUES (?, ?)");
+            const linkTag = db.query(
+              "INSERT OR IGNORE INTO topic_tags (topicId, tagId) VALUES (?, ?)"
+            )
             for (const tagId of tagIds) {
-              linkTag.run(topicId, tagId);
+              linkTag.run(topicId, tagId)
             }
           }
 
           const topic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as {
-            id: string;
-            name: string;
-            description: string | null;
-            isArchived: number;
-            createdAt: string;
-            updatedAt: string;
-          };
+            id: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+          }
 
           return Response.json({
             id: topic.id,
@@ -143,10 +147,10 @@ const server = serve({
             isArchived: topic.isArchived === 1,
             createdAt: topic.createdAt,
             updatedAt: topic.updatedAt,
-          });
+          })
         } catch (error) {
-          console.error("Error creating topic:", error);
-          return Response.json({ error: "Failed to create topic" }, { status: 500 });
+          console.error("Error creating topic:", error)
+          return Response.json({ error: "Failed to create topic" }, { status: 500 })
         }
       },
     },
@@ -154,11 +158,13 @@ const server = serve({
     "/api/tags": {
       async GET() {
         try {
-          const tags = db.query("SELECT name FROM tags ORDER BY LOWER(name)").all() as Array<{ name: string }>;
-          return Response.json(tags.map(t => t.name));
+          const tags = db.query("SELECT name FROM tags ORDER BY LOWER(name)").all() as Array<{
+            name: string
+          }>
+          return Response.json(tags.map((t) => t.name))
         } catch (error) {
-          console.error("Error fetching tags:", error);
-          return Response.json({ error: "Failed to fetch tags" }, { status: 500 });
+          console.error("Error fetching tags:", error)
+          return Response.json({ error: "Failed to fetch tags" }, { status: 500 })
         }
       },
     },
@@ -166,69 +172,80 @@ const server = serve({
     "/api/ideas": {
       async POST(req) {
         try {
-          const body = await req.json();
-          const { topicId, name, description, tags } = body;
+          const body = await req.json()
+          const { topicId, name, description, tags } = body
 
           if (!topicId || typeof topicId !== "string" || topicId.trim() === "") {
-            return Response.json({ error: "Topic is required" }, { status: 400 });
+            return Response.json({ error: "Topic is required" }, { status: 400 })
           }
 
           if (!name || typeof name !== "string" || name.trim() === "") {
-            return Response.json({ error: "Name is required" }, { status: 400 });
+            return Response.json({ error: "Name is required" }, { status: 400 })
           }
 
-          const topic = db.query("SELECT * FROM topics WHERE id = ? AND isArchived = 0").get(topicId) as
-            | { id: string; name: string; description: string | null; isArchived: number; createdAt: string; updatedAt: string }
-            | undefined;
+          const topic = db
+            .query("SELECT * FROM topics WHERE id = ? AND isArchived = 0")
+            .get(topicId) as
+            | {
+                id: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
 
           if (!topic) {
-            return Response.json({ error: "Topic not found" }, { status: 404 });
+            return Response.json({ error: "Topic not found" }, { status: 404 })
           }
 
-          const ideaId = crypto.randomUUID();
-          const now = new Date().toISOString();
+          const ideaId = crypto.randomUUID()
+          const now = new Date().toISOString()
 
           db.query(`
             INSERT INTO ideas (id, topicId, name, description, isArchived, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, 0, ?, ?)
-          `).run(ideaId, topicId, name.trim(), description || null, now, now);
+          `).run(ideaId, topicId, name.trim(), description || null, now, now)
 
-          const tagIds: string[] = [];
+          const tagIds: string[] = []
 
           if (tags && Array.isArray(tags) && tags.length > 0) {
-            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)");
-            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)");
+            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)")
+            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)")
 
             for (const tag of tags) {
-              const tagName = tag.trim();
-              if (!tagName) continue;
+              const tagName = tag.trim()
+              if (!tagName) continue
 
-              const existingTag = getTagId.get(tagName) as { id: string } | undefined;
+              const existingTag = getTagId.get(tagName) as { id: string } | undefined
 
               if (existingTag) {
-                tagIds.push(existingTag.id);
+                tagIds.push(existingTag.id)
               } else {
-                const tagId = crypto.randomUUID();
-                insertTag.run(tagId, tagName);
-                tagIds.push(tagId);
+                const tagId = crypto.randomUUID()
+                insertTag.run(tagId, tagName)
+                tagIds.push(tagId)
               }
             }
 
-            const linkTag = db.query("INSERT OR IGNORE INTO idea_tags (ideaId, tagId) VALUES (?, ?)");
+            const linkTag = db.query(
+              "INSERT OR IGNORE INTO idea_tags (ideaId, tagId) VALUES (?, ?)"
+            )
             for (const tagId of tagIds) {
-              linkTag.run(ideaId, tagId);
+              linkTag.run(ideaId, tagId)
             }
           }
 
           const idea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as {
-            id: string;
-            topicId: string;
-            name: string;
-            description: string | null;
-            isArchived: number;
-            createdAt: string;
-            updatedAt: string;
-          };
+            id: string
+            topicId: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+          }
 
           return Response.json({
             id: idea.id,
@@ -238,10 +255,10 @@ const server = serve({
             isArchived: idea.isArchived === 1,
             createdAt: idea.createdAt,
             updatedAt: idea.updatedAt,
-          });
+          })
         } catch (error) {
-          console.error("Error creating idea:", error);
-          return Response.json({ error: "Failed to create idea" }, { status: 500 });
+          console.error("Error creating idea:", error)
+          return Response.json({ error: "Failed to create idea" }, { status: 500 })
         }
       },
     },
@@ -249,9 +266,10 @@ const server = serve({
     "/api/ideas/:id": {
       async GET(req) {
         try {
-          const ideaId = req.params.id;
+          const ideaId = req.params.id
 
-          const idea = db.query(`
+          const idea = db
+            .query(`
             SELECT 
               i.id,
               i.topicId,
@@ -274,23 +292,26 @@ const server = serve({
             LEFT JOIN topics t ON t.id = i.topicId
             LEFT JOIN feedback f ON f.ideaId = i.id
             WHERE i.id = ?
-          `).get(ideaId) as {
-            id: string;
-            topicId: string;
-            name: string;
-            description: string | null;
-            isArchived: number;
-            createdAt: string;
-            updatedAt: string;
-            topicName: string | null;
-            topicArchived: number | null;
-            feedbackRating: number | null;
-            feedbackNotes: string | null;
-            tags: string | null;
-          } | undefined;
+          `)
+            .get(ideaId) as
+            | {
+                id: string
+                topicId: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+                topicName: string | null
+                topicArchived: number | null
+                feedbackRating: number | null
+                feedbackNotes: string | null
+                tags: string | null
+              }
+            | undefined
 
           if (!idea || idea.isArchived === 1 || idea.topicArchived === 1) {
-            return Response.json({ error: "Idea not found" }, { status: 404 });
+            return Response.json({ error: "Idea not found" }, { status: 404 })
           }
 
           return Response.json({
@@ -309,10 +330,10 @@ const server = serve({
               : undefined,
             createdAt: idea.createdAt,
             updatedAt: idea.updatedAt,
-          });
+          })
         } catch (error) {
-          console.error("Error fetching idea:", error);
-          return Response.json({ error: "Failed to fetch idea" }, { status: 500 });
+          console.error("Error fetching idea:", error)
+          return Response.json({ error: "Failed to fetch idea" }, { status: 500 })
         }
       },
     },
@@ -320,9 +341,10 @@ const server = serve({
     "/api/topics/:id": {
       async GET(req) {
         try {
-          const topicId = req.params.id;
+          const topicId = req.params.id
 
-          const topic = db.query(`
+          const topic = db
+            .query(`
             SELECT 
               t.id,
               t.name,
@@ -338,21 +360,25 @@ const server = serve({
               ) as tags
             FROM topics t
             WHERE t.id = ?
-          `).get(topicId) as {
-            id: string;
-            name: string;
-            description: string | null;
-            isArchived: number;
-            createdAt: string;
-            updatedAt: string;
-            tags: string | null;
-          } | undefined;
+          `)
+            .get(topicId) as
+            | {
+                id: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+                tags: string | null
+              }
+            | undefined
 
           if (!topic || topic.isArchived === 1) {
-            return Response.json({ error: "Topic not found" }, { status: 404 });
+            return Response.json({ error: "Topic not found" }, { status: 404 })
           }
 
-          const ideas = db.query(`
+          const ideas = db
+            .query(`
             SELECT 
               i.id,
               i.topicId,
@@ -373,20 +399,21 @@ const server = serve({
             LEFT JOIN feedback f ON f.ideaId = i.id
             WHERE i.topicId = ? AND i.isArchived = 0
             ORDER BY i.createdAt DESC
-          `).all(topicId) as Array<{
-            id: string;
-            topicId: string;
-            name: string;
-            description: string | null;
-            isArchived: number;
-            createdAt: string;
-            updatedAt: string;
-            feedbackRating: number | null;
-            feedbackNotes: string | null;
-            tags: string | null;
-          }>;
+          `)
+            .all(topicId) as Array<{
+            id: string
+            topicId: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+            feedbackRating: number | null
+            feedbackNotes: string | null
+            tags: string | null
+          }>
 
-          const formattedIdeas = ideas.map(idea => ({
+          const formattedIdeas = ideas.map((idea) => ({
             id: idea.id,
             topicId: idea.topicId,
             name: idea.name,
@@ -401,7 +428,7 @@ const server = serve({
               : undefined,
             createdAt: idea.createdAt,
             updatedAt: idea.updatedAt,
-          }));
+          }))
 
           return Response.json({
             id: topic.id,
@@ -412,82 +439,93 @@ const server = serve({
             ideas: formattedIdeas,
             createdAt: topic.createdAt,
             updatedAt: topic.updatedAt,
-          });
+          })
         } catch (error) {
-          console.error("Error fetching topic:", error);
-          return Response.json({ error: "Failed to fetch topic" }, { status: 500 });
+          console.error("Error fetching topic:", error)
+          return Response.json({ error: "Failed to fetch topic" }, { status: 500 })
         }
       },
 
       async PUT(req) {
         try {
-          const topicId = req.params.id;
-          const body = await req.json();
-          const { name, description, tags } = body;
+          const topicId = req.params.id
+          const body = await req.json()
+          const { name, description, tags } = body
 
           if (!name || typeof name !== "string" || name.trim() === "") {
-            return Response.json({ error: "Name is required" }, { status: 400 });
+            return Response.json({ error: "Name is required" }, { status: 400 })
           }
 
           const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
-            | { id: string; name: string; description: string | null; isArchived: number; createdAt: string; updatedAt: string }
-            | undefined;
+            | {
+                id: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
 
           if (!existingTopic || existingTopic.isArchived === 1) {
-            return Response.json({ error: "Topic not found" }, { status: 404 });
+            return Response.json({ error: "Topic not found" }, { status: 404 })
           }
 
-          const now = new Date().toISOString();
+          const now = new Date().toISOString()
 
           db.query(`
             UPDATE topics
             SET name = ?, description = ?, updatedAt = ?
             WHERE id = ?
-          `).run(name.trim(), description || null, now, topicId);
+          `).run(name.trim(), description || null, now, topicId)
 
           if (tags && Array.isArray(tags)) {
-            const existingTagLinks = db.query("SELECT tagId FROM topic_tags WHERE topicId = ?").all(topicId) as Array<{ tagId: string }>;
-            const existingTagIds = existingTagLinks.map(t => t.tagId);
+            const existingTagLinks = db
+              .query("SELECT tagId FROM topic_tags WHERE topicId = ?")
+              .all(topicId) as Array<{ tagId: string }>
+            const existingTagIds = existingTagLinks.map((t) => t.tagId)
 
-            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)");
-            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)");
-            const linkTag = db.query("INSERT OR IGNORE INTO topic_tags (topicId, tagId) VALUES (?, ?)");
-            const unlinkTag = db.query("DELETE FROM topic_tags WHERE topicId = ? AND tagId = ?");
+            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)")
+            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)")
+            const linkTag = db.query(
+              "INSERT OR IGNORE INTO topic_tags (topicId, tagId) VALUES (?, ?)"
+            )
+            const unlinkTag = db.query("DELETE FROM topic_tags WHERE topicId = ? AND tagId = ?")
 
-            const newTagIds: string[] = [];
+            const newTagIds: string[] = []
 
             for (const tag of tags) {
-              const tagName = tag.trim();
-              if (!tagName) continue;
+              const tagName = tag.trim()
+              if (!tagName) continue
 
-              const existingTag = getTagId.get(tagName) as { id: string } | undefined;
+              const existingTag = getTagId.get(tagName) as { id: string } | undefined
 
               if (existingTag) {
-                newTagIds.push(existingTag.id);
-                linkTag.run(topicId, existingTag.id);
+                newTagIds.push(existingTag.id)
+                linkTag.run(topicId, existingTag.id)
               } else {
-                const tagId = crypto.randomUUID();
-                insertTag.run(tagId, tagName);
-                newTagIds.push(tagId);
-                linkTag.run(topicId, tagId);
+                const tagId = crypto.randomUUID()
+                insertTag.run(tagId, tagName)
+                newTagIds.push(tagId)
+                linkTag.run(topicId, tagId)
               }
             }
 
             for (const oldTagId of existingTagIds) {
               if (!newTagIds.includes(oldTagId)) {
-                unlinkTag.run(topicId, oldTagId);
+                unlinkTag.run(topicId, oldTagId)
               }
             }
           }
 
           const topic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as {
-            id: string;
-            name: string;
-            description: string | null;
-            isArchived: number;
-            createdAt: string;
-            updatedAt: string;
-          };
+            id: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+          }
 
           return Response.json({
             id: topic.id,
@@ -496,43 +534,50 @@ const server = serve({
             isArchived: topic.isArchived === 1,
             createdAt: topic.createdAt,
             updatedAt: topic.updatedAt,
-          });
+          })
         } catch (error) {
-          console.error("Error updating topic:", error);
-          return Response.json({ error: "Failed to update topic" }, { status: 500 });
+          console.error("Error updating topic:", error)
+          return Response.json({ error: "Failed to update topic" }, { status: 500 })
         }
       },
 
       async DELETE(req) {
         try {
-          const topicId = req.params.id;
+          const topicId = req.params.id
 
           const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
-            | { id: string; name: string; description: string | null; isArchived: number; createdAt: string; updatedAt: string }
-            | undefined;
+            | {
+                id: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
 
           if (!existingTopic || existingTopic.isArchived === 1) {
-            return Response.json({ error: "Topic not found" }, { status: 404 });
+            return Response.json({ error: "Topic not found" }, { status: 404 })
           }
 
-          const now = new Date().toISOString();
+          const now = new Date().toISOString()
 
           db.query(`
             UPDATE topics
             SET isArchived = 1, updatedAt = ?
             WHERE id = ?
-          `).run(now, topicId);
+          `).run(now, topicId)
 
           db.query(`
             UPDATE ideas
             SET isArchived = 1, updatedAt = ?
             WHERE topicId = ?
-          `).run(now, topicId);
+          `).run(now, topicId)
 
-          return Response.json({ success: true });
+          return Response.json({ success: true })
         } catch (error) {
-          console.error("Error deleting topic:", error);
-          return Response.json({ error: "Failed to delete topic" }, { status: 500 });
+          console.error("Error deleting topic:", error)
+          return Response.json({ error: "Failed to delete topic" }, { status: 500 })
         }
       },
     },
@@ -545,6 +590,6 @@ const server = serve({
     // Echo console logs from the browser to the server
     console: true,
   },
-});
+})
 
-console.log(`🚀 Server running at ${server.url}`);
+console.log(`🚀 Server running at ${server.url}`)

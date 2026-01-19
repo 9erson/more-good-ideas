@@ -1,6 +1,6 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test"
 
 test("example test passes", () => {
-  const sum = 1 + 1;
-  expect(sum).toBe(2);
-});
+  const sum = 1 + 1
+  expect(sum).toBe(2)
+})

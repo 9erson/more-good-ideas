@@ -1,76 +1,76 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 export function NewTopic() {
-  const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [existingTags, setExistingTags] = useState<string[]>([]);
-  const [filteredTags, setFilteredTags] = useState<string[]>([]);
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate()
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [tagInput, setTagInput] = useState("")
+  const [tags, setTags] = useState<string[]>([])
+  const [existingTags, setExistingTags] = useState<string[]>([])
+  const [filteredTags, setFilteredTags] = useState<string[]>([])
+  const [showAutocomplete, setShowAutocomplete] = useState(false)
+  const [error, setError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await fetch("/api/tags");
+        const res = await fetch("/api/tags")
         if (res.ok) {
-          const data = await res.json();
-          setExistingTags(data);
+          const data = await res.json()
+          setExistingTags(data)
         }
       } catch (err) {
-        console.error("Failed to fetch tags:", err);
+        console.error("Failed to fetch tags:", err)
       }
-    };
+    }
 
-    fetchTags();
-  }, []);
+    fetchTags()
+  }, [])
 
   const handleTagInputChange = (value: string) => {
-    setTagInput(value);
+    setTagInput(value)
     if (value.trim()) {
       const filtered = existingTags.filter(
-        tag => tag.toLowerCase().includes(value.toLowerCase()) && !tags.includes(tag)
-      );
-      setFilteredTags(filtered);
-      setShowAutocomplete(true);
+        (tag) => tag.toLowerCase().includes(value.toLowerCase()) && !tags.includes(tag)
+      )
+      setFilteredTags(filtered)
+      setShowAutocomplete(true)
     } else {
-      setShowAutocomplete(false);
+      setShowAutocomplete(false)
     }
-  };
+  }
 
   const handleAddTag = (tag: string) => {
-    const normalizedTag = tag.trim().toLowerCase();
-    const hasTag = tags.some(t => t.toLowerCase() === normalizedTag);
+    const normalizedTag = tag.trim().toLowerCase()
+    const hasTag = tags.some((t) => t.toLowerCase() === normalizedTag)
 
     if (!hasTag && normalizedTag) {
-      setTags([...tags, tag.trim()]);
+      setTags([...tags, tag.trim()])
     }
-    setTagInput("");
-    setShowAutocomplete(false);
-  };
+    setTagInput("")
+    setShowAutocomplete(false)
+  }
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove));
-  };
+    setTags(tags.filter((t) => t !== tagToRemove))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+    e.preventDefault()
+    setError("")
 
     if (!name.trim()) {
-      setError("Name is required");
-      return;
+      setError("Name is required")
+      return
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     try {
       const res = await fetch("/api/topics", {
@@ -83,20 +83,20 @@ export function NewTopic() {
           description: description.trim() || null,
           tags,
         }),
-      });
+      })
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to create topic");
+        const data = await res.json()
+        throw new Error(data.error || "Failed to create topic")
       }
 
-      const topic = await res.json();
-      navigate(`/topics/${topic.id}`);
+      const topic = await res.json()
+      navigate(`/topics/${topic.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create topic");
-      setIsSubmitting(false);
+      setError(err instanceof Error ? err.message : "Failed to create topic")
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -123,9 +123,7 @@ export function NewTopic() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">
-                {error}
-              </div>
+              <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">{error}</div>
             )}
 
             <div className="space-y-2">
@@ -134,7 +132,7 @@ export function NewTopic() {
                 id="name"
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Topic name"
                 className={error && !name.trim() ? "border-destructive" : ""}
               />
@@ -145,7 +143,7 @@ export function NewTopic() {
               <Textarea
                 id="description"
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description of this topic"
                 rows={3}
               />
@@ -158,11 +156,11 @@ export function NewTopic() {
                   id="tags"
                   type="text"
                   value={tagInput}
-                  onChange={e => handleTagInputChange(e.target.value)}
-                  onKeyDown={e => {
+                  onChange={(e) => handleTagInputChange(e.target.value)}
+                  onKeyDown={(e) => {
                     if (e.key === "Enter" && tagInput.trim()) {
-                      e.preventDefault();
-                      handleAddTag(tagInput);
+                      e.preventDefault()
+                      handleAddTag(tagInput)
                     }
                   }}
                   placeholder="Add a tag and press Enter"
@@ -170,7 +168,7 @@ export function NewTopic() {
                 />
                 {showAutocomplete && filteredTags.length > 0 && (
                   <ul className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-md max-h-60 overflow-y-auto">
-                    {filteredTags.map(tag => (
+                    {filteredTags.map((tag) => (
                       <li
                         key={tag}
                         className="px-3 py-2 hover:bg-muted cursor-pointer"
@@ -184,7 +182,7 @@ export function NewTopic() {
               </div>
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {tags.map(tag => (
+                  {tags.map((tag) => (
                     <span
                       key={tag}
                       className="inline-flex items-center gap-1 px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-sm"
@@ -215,5 +213,5 @@ export function NewTopic() {
         </div>
       </main>
     </div>
-  );
+  )
 }

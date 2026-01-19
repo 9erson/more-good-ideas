@@ -116,26 +116,15 @@
     },
     {
       "entity": "Tag",
-      "fields": [
-        "id (primary key)",
-        "name (text, unique, required)"
-      ]
+      "fields": ["id (primary key)", "name (text, unique, required)"]
     },
     {
       "entity": "TopicTag (join table)",
-      "fields": [
-        "topicId (foreign key)",
-        "tagId (foreign key)",
-        "primary key: (topicId, tagId)"
-      ]
+      "fields": ["topicId (foreign key)", "tagId (foreign key)", "primary key: (topicId, tagId)"]
     },
     {
       "entity": "IdeaTag (join table)",
-      "fields": [
-        "ideaId (foreign key)",
-        "tagId (foreign key)",
-        "primary key: (ideaId, tagId)"
-      ]
+      "fields": ["ideaId (foreign key)", "tagId (foreign key)", "primary key: (ideaId, tagId)"]
     },
     {
       "entity": "Feedback",
@@ -160,10 +149,7 @@
           "name": "Topic Name",
           "description": "Description",
           "isArchived": false,
-          "tags": [
-            "tag1",
-            "tag2"
-          ]
+          "tags": ["tag1", "tag2"]
         }
       ],
       "ideas": [
@@ -173,9 +159,7 @@
           "name": "Idea Name",
           "description": "Description",
           "isArchived": false,
-          "tags": [
-            "tag1"
-          ],
+          "tags": ["tag1"],
           "feedback": {
             "rating": 4,
             "notes": "Optional notes"
@@ -193,12 +177,7 @@
     "Deleting a topic must cascade delete all associated ideas and their feedback/tags",
     "Import must validate required fields before inserting data"
   ],
-  "qualityGates": [
-    "bun test",
-    "bun run lint",
-    "bun run typecheck",
-    "bun run build"
-  ],
+  "qualityGates": ["bun test", "bun run lint", "bun run typecheck", "bun run build"],
   "stories": [
     {
       "id": "US-001",
@@ -231,9 +210,7 @@
       "id": "US-002",
       "title": "Setup SQLite database schema",
       "status": "open",
-      "dependsOn": [
-        "US-001"
-      ],
+      "dependsOn": ["US-001"],
       "description": "As a developer, I want a SQLite database with tables for topics, ideas, tags, and feedback so that data persists across sessions.",
       "acceptanceCriteria": [
         "Create database directory and initialize bun:sqlite connection",
@@ -255,9 +232,7 @@
       "id": "US-003",
       "title": "Create dashboard with topic list",
       "status": "done",
-      "dependsOn": [
-        "US-002"
-      ],
+      "dependsOn": ["US-002"],
       "description": "As a user, I want to see all my topics in a dashboard so that I can navigate to them quickly.",
       "acceptanceCriteria": [
         "Create / route with dashboard layout",
@@ -280,9 +255,7 @@
       "id": "US-004",
       "title": "Create new topic",
       "status": "done",
-      "dependsOn": [
-        "US-003"
-      ],
+      "dependsOn": ["US-003"],
       "description": "As a user, I want to create a new topic with name, description, and tags so that I can organize my ideas.",
       "acceptanceCriteria": [
         "Create /topics/new route with form",
@@ -306,9 +279,7 @@
       "id": "US-005",
       "title": "View topic details and ideas list",
       "status": "done",
-      "dependsOn": [
-        "US-004"
-      ],
+      "dependsOn": ["US-004"],
       "description": "As a user, I want to view a topic's details and see all ideas in that topic so that I can review my content.",
       "acceptanceCriteria": [
         "Create /topics/:id route",
@@ -332,9 +303,7 @@
       "id": "US-006",
       "title": "Edit topic",
       "status": "done",
-      "dependsOn": [
-        "US-005"
-      ],
+      "dependsOn": ["US-005"],
       "description": "As a user, I want to edit a topic's name, description, and tags so that I can keep my content up to date.",
       "acceptanceCriteria": [
         "Create /topics/:id/edit route with pre-filled form",
@@ -356,9 +325,7 @@
       "id": "US-007",
       "title": "Delete topic",
       "status": "done",
-      "dependsOn": [
-        "US-005"
-      ],
+      "dependsOn": ["US-005"],
       "description": "As a user, I want to delete a topic so that I can remove content I no longer need.",
       "acceptanceCriteria": [
         "Add 'Delete Topic' button on topic detail page",
@@ -379,9 +346,7 @@
       "id": "US-008",
       "title": "Create new idea",
       "status": "in_progress",
-      "dependsOn": [
-        "US-004"
-      ],
+      "dependsOn": ["US-004"],
       "description": "As a user, I want to create a new idea with name, description, and tags so that I can capture my thoughts.",
       "acceptanceCriteria": [
         "Create /ideas/new route with form",
@@ -405,9 +370,7 @@
       "id": "US-009",
       "title": "View idea details and feedback",
       "status": "open",
-      "dependsOn": [
-        "US-008"
-      ],
+      "dependsOn": ["US-008"],
       "description": "As a user, I want to view an idea's details and add/edit feedback so that I can track my thoughts.",
       "acceptanceCriteria": [
         "Create /ideas/:id route",
@@ -428,9 +391,7 @@
       "id": "US-010",
       "title": "Add/edit feedback to idea",
       "status": "open",
-      "dependsOn": [
-        "US-009"
-      ],
+      "dependsOn": ["US-009"],
       "description": "As a user, I want to add feedback (rating + notes) to an idea so that I can evaluate it.",
       "acceptanceCriteria": [
         "Create feedback form with: rating (1-5 stars, required), notes (optional text area)",
@@ -447,9 +408,7 @@
       "id": "US-011",
       "title": "Edit idea and move between topics",
       "status": "open",
-      "dependsOn": [
-        "US-009"
-      ],
+      "dependsOn": ["US-009"],
       "description": "As a user, I want to edit an idea's details and move it to a different topic so that I can reorganize content.",
       "acceptanceCriteria": [
         "Create /ideas/:id/edit route with pre-filled form",
@@ -470,9 +429,7 @@
       "id": "US-012",
       "title": "Delete idea",
       "status": "open",
-      "dependsOn": [
-        "US-009"
-      ],
+      "dependsOn": ["US-009"],
       "description": "As a user, I want to delete an idea so that I can remove content I no longer need.",
       "acceptanceCriteria": [
         "Add 'Delete Idea' button on idea detail page",
@@ -489,9 +446,7 @@
       "id": "US-013",
       "title": "Text search for topics and ideas",
       "status": "open",
-      "dependsOn": [
-        "US-003"
-      ],
+      "dependsOn": ["US-003"],
       "description": "As a user, I want to search topics and ideas by text so that I can quickly find specific content.",
       "acceptanceCriteria": [
         "Add search bar to dashboard (persistent across pages)",
@@ -510,9 +465,7 @@
       "id": "US-014",
       "title": "Filter by tags",
       "status": "open",
-      "dependsOn": [
-        "US-003"
-      ],
+      "dependsOn": ["US-003"],
       "description": "As a user, I want to filter topics and ideas by tags so that I can browse related content.",
       "acceptanceCriteria": [
         "Add 'Filter by tags' dropdown on dashboard and topic pages",
@@ -531,9 +484,7 @@
       "id": "US-015",
       "title": "Filter by feedback rating",
       "status": "open",
-      "dependsOn": [
-        "US-009"
-      ],
+      "dependsOn": ["US-009"],
       "description": "As a user, I want to filter ideas by feedback rating so that I can prioritize based on quality.",
       "acceptanceCriteria": [
         "Add 'Filter by rating' dropdown on topic pages",
@@ -551,10 +502,7 @@
       "id": "US-016",
       "title": "View archive and restore items",
       "status": "open",
-      "dependsOn": [
-        "US-007",
-        "US-012"
-      ],
+      "dependsOn": ["US-007", "US-012"],
       "description": "As a user, I want to view archived items and restore them so that I can recover deleted content.",
       "acceptanceCriteria": [
         "Create /archive route",
@@ -573,9 +521,7 @@
       "id": "US-017",
       "title": "Export data to JSON",
       "status": "open",
-      "dependsOn": [
-        "US-002"
-      ],
+      "dependsOn": ["US-002"],
       "description": "As a user, I want to export all my data as JSON so that I can backup or migrate my content.",
       "acceptanceCriteria": [
         "Create /export route",
@@ -594,9 +540,7 @@
       "id": "US-018",
       "title": "Import data from JSON",
       "status": "open",
-      "dependsOn": [
-        "US-017"
-      ],
+      "dependsOn": ["US-017"],
       "description": "As a user, I want to import data from a JSON file so that I can restore a backup or migrate content.",
       "acceptanceCriteria": [
         "Create /import route with file upload",
@@ -616,9 +560,7 @@
       "id": "US-019",
       "title": "Setup quality gates and CI validation",
       "status": "open",
-      "dependsOn": [
-        "US-001"
-      ],
+      "dependsOn": ["US-001"],
       "description": "As a developer, I want quality gate commands to run and pass so that code quality is maintained.",
       "acceptanceCriteria": [
         "Ensure bun test runs and passes all tests",
