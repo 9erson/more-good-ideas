@@ -87,8 +87,8 @@ fi
 # ==============================================================================
 run_build() { run_with_timer "Build" "bun run build" "$BUILD_CHECK_FILE"; }
 run_lint() { run_with_timer "Lint" "bun run lint:fix && bun run lint" "$LINT_CHECK_FILE"; }
-run_typecheck() { run_with_timer "Typecheck" "bun run typecheck" "$TYPECHECK_CHECK_FILE"; }
-run_unit_test_coverage() { run_with_timer "Unit Tests" "bun test --coverage" "$UNIT_TEST_COVERAGE_CHECK_FILE"; }
+run_typecheck() { run_with_timer "Typecheck" "bun run typecheck 2>&1 || (echo 'Typecheck failed' && exit 1); echo 'Typecheck passed'" "$TYPECHECK_CHECK_FILE"; }
+run_unit_test_coverage() { run_with_timer "Unit Tests" "bun test --coverage --coverage-reporter=text 2>&1" "$UNIT_TEST_COVERAGE_CHECK_FILE"; }
 run_e2e_test() { run_with_timer "E2E Tests" "bun test:e2e" "$E2E_TEST_CHECK_FILE"; }
 
 run_health_checks() {

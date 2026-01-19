@@ -215,13 +215,14 @@ export function NewIdea() {
                 {showAutocomplete && filteredTags.length > 0 && (
                   <ul className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-md max-h-60 overflow-y-auto">
                     {filteredTags.map((tag) => (
-                      <li
+                      <button
                         key={tag}
-                        className="px-3 py-2 hover:bg-muted cursor-pointer"
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-muted cursor-pointer"
                         onClick={() => handleAddTag(tag)}
                       >
                         {tag}
-                      </li>
+                      </button>
                     ))}
                   </ul>
                 )}

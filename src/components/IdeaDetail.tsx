@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function IdeaDetail() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
+  const _navigate = useNavigate()
   const [idea, setIdea] = useState<{
     id: string
     topicId: string

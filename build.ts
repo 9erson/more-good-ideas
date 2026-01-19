@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
+import { existsSync } from "node:fs"
+import { rm } from "node:fs/promises"
+import path from "node:path"
 import plugin from "bun-plugin-tailwind"
-import { existsSync } from "fs"
-import { rm } from "fs/promises"
-import path from "path"
 
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(`
@@ -35,7 +35,7 @@ Example:
 
 const toCamelCase = (str: string): string => str.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
 
-const parseValue = (value: string): any => {
+const parseValue = (value: string): boolean | number | string | string[] => {
   if (value === "true") return true
   if (value === "false") return false
 
@@ -48,7 +48,7 @@ const parseValue = (value: string): any => {
 }
 
 function parseArgs(): Partial<Bun.BuildConfig> {
-  const config = {} as any
+  const config: Record<string, unknown> = {}
   const args = process.argv.slice(2)
 
   for (let i = 0; i < args.length; i++) {
@@ -85,8 +85,9 @@ function parseArgs(): Partial<Bun.BuildConfig> {
       const parentKey = parts[0]
       const childKey = parts[1]
       if (parentKey && childKey) {
-        config[parentKey] = config[parentKey] || {}
-        config[parentKey][childKey] = parseValue(value)
+        const parentValue = config[parentKey] as Record<string, unknown> | undefined
+        config[parentKey] = parentValue || {}
+        ;(config[parentKey] as Record<string, unknown>)[childKey] = parseValue(value)
       }
     } else {
       config[key] = parseValue(value)
