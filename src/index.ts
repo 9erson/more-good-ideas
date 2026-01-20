@@ -338,6 +338,138 @@ const server = serve({
       },
     },
 
+    "/api/archive/topics": {
+      async GET() {
+        try {
+          const topics = db
+            .query(`
+            SELECT
+              t.id,
+              t.name,
+              t.description,
+              t.isArchived,
+              t.createdAt,
+              t.updatedAt,
+              COUNT(i.id) as ideaCount,
+              (
+                SELECT GROUP_CONCAT(tag.name, ',')
+                FROM topic_tags tt
+                JOIN tags tag ON tag.id = tt.tagId
+                WHERE tt.topicId = t.id
+              ) as tags
+            FROM topics t
+            LEFT JOIN ideas i ON i.topicId = t.id
+            WHERE t.isArchived = 1
+            GROUP BY t.id
+            ORDER BY t.updatedAt DESC
+          `)
+            .all() as Array<{
+            id: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+            ideaCount: number
+            tags: string | null
+          }>
+
+          const formattedTopics = topics.map((topic) => ({
+            id: topic.id,
+            name: topic.name,
+            description: topic.description,
+            isArchived: topic.isArchived === 1,
+            ideaCount: topic.ideaCount,
+            tags: topic.tags ? topic.tags.split(",") : [],
+            createdAt: topic.createdAt,
+            updatedAt: topic.updatedAt,
+          }))
+
+          return Response.json(formattedTopics)
+        } catch (error) {
+          console.error("Error fetching archived topics:", error)
+          return Response.json({ error: "Failed to fetch archived topics" }, { status: 500 })
+        }
+      },
+    },
+
+    "/api/archive/ideas": {
+      async GET() {
+        try {
+          const ideas = db
+            .query(`
+            SELECT
+              i.id,
+              i.topicId,
+              i.name,
+              i.description,
+              i.isArchived,
+              i.createdAt,
+              i.updatedAt,
+              t.name as topicName,
+              (
+              SELECT GROUP_CONCAT(tag.name, ',')
+              FROM idea_tags it
+              JOIN tags tag ON tag.id = it.tagId
+              WHERE it.ideaId = i.id
+            ) as tags
+            FROM ideas i
+            LEFT JOIN topics t ON t.id = i.topicId
+            WHERE i.isArchived = 1
+            ORDER BY i.updatedAt DESC
+          `)
+            .all() as Array<{
+            id: string
+            topicId: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+            topicName: string | null
+            tags: string | null
+          }>
+
+          const formattedIdeas = ideas.map((idea) => ({
+            id: idea.id,
+            topicId: idea.topicId,
+            name: idea.name,
+            description: idea.description,
+            isArchived: idea.isArchived === 1,
+            topicName: idea.topicName,
+            tags: idea.tags ? idea.tags.split(",") : [],
+            createdAt: idea.createdAt,
+            updatedAt: idea.updatedAt,
+          }))
+
+          return Response.json(formattedIdeas)
+        } catch (error) {
+          console.error("Error fetching archived ideas:", error)
+          return Response.json({ error: "Failed to fetch archived ideas" }, { status: 500 })
+        }
+      },
+    },
+
+    "/api/test/cleanup": {
+      async POST() {
+        if (process.env.NODE_ENV === "production") {
+          return Response.json({ error: "Not allowed in production" }, { status: 403 })
+        }
+        try {
+          db.exec("DELETE FROM feedback")
+          db.exec("DELETE FROM idea_tags")
+          db.exec("DELETE FROM topic_tags")
+          db.exec("DELETE FROM ideas")
+          db.exec("DELETE FROM topics")
+          db.exec("DELETE FROM tags")
+          return Response.json({ success: true })
+        } catch (error) {
+          console.error("Error cleaning up database:", error)
+          return Response.json({ error: "Failed to cleanup database" }, { status: 500 })
+        }
+      },
+    },
+
     "/api/topics/:id": {
       async GET(req) {
         try {
