@@ -102,24 +102,15 @@
     },
     {
       "entity": "Tag",
-      "fields": [
-        "id (primary key)",
-        "name (text)"
-      ]
+      "fields": ["id (primary key)", "name (text)"]
     },
     {
       "entity": "TopicTag (join table)",
-      "fields": [
-        "topicId (foreign key)",
-        "tagId (foreign key)"
-      ]
+      "fields": ["topicId (foreign key)", "tagId (foreign key)"]
     },
     {
       "entity": "IdeaTag (join table)",
-      "fields": [
-        "ideaId (foreign key)",
-        "tagId (foreign key)"
-      ]
+      "fields": ["ideaId (foreign key)", "tagId (foreign key)"]
     }
   ],
   "importFormat": {
@@ -136,10 +127,7 @@
     "Tag filter uses AND logic (show items matching ALL selected tags)",
     "Items sorted by archived date (newest first)"
   ],
-  "qualityGates": [
-    "bun test",
-    "bun run typecheck"
-  ],
+  "qualityGates": ["bun test", "bun run typecheck"],
   "stories": [
     {
       "id": "US-001",
@@ -167,9 +155,7 @@
       "id": "US-002",
       "title": "Implement archive page layout and navigation",
       "status": "done",
-      "dependsOn": [
-        "US-001"
-      ],
+      "dependsOn": ["US-001"],
       "description": "As a user, I want to see a clean archive page with navigation so that I can browse archived items.",
       "acceptanceCriteria": [
         "Update /archive route to fetch and display archived items",
@@ -194,9 +180,7 @@
       "id": "US-003",
       "title": "Implement search and filter functionality",
       "status": "done",
-      "dependsOn": [
-        "US-002"
-      ],
+      "dependsOn": ["US-002"],
       "description": "As a user, I want to search and filter archived items so that I can quickly find specific content.",
       "acceptanceCriteria": [
         "Search input filters items by name and description (debounced 300ms)",
@@ -241,10 +225,7 @@
       "id": "US-005",
       "title": "Implement restore functionality with confirmation",
       "status": "done",
-      "dependsOn": [
-        "US-004",
-        "US-002"
-      ],
+      "dependsOn": ["US-004", "US-002"],
       "description": "As a user, I want to restore archived items so that I can recover deleted content.",
       "acceptanceCriteria": [
         "Add 'Restore' button to each item card",
@@ -289,10 +270,7 @@
       "id": "US-007",
       "title": "Implement permanent delete with confirmation",
       "status": "done",
-      "dependsOn": [
-        "US-006",
-        "US-002"
-      ],
+      "dependsOn": ["US-006", "US-002"],
       "description": "As a user, I want to permanently delete archived items so that I can remove content I no longer need.",
       "acceptanceCriteria": [
         "Add 'Permanently Delete' button (danger style) to each item card",
@@ -314,12 +292,8 @@
     {
       "id": "US-008",
       "title": "Write tests for archive functionality",
-      "status": "in_progress",
-      "dependsOn": [
-        "US-001",
-        "US-004",
-        "US-006"
-      ],
+      "status": "done",
+      "dependsOn": ["US-001", "US-004", "US-006"],
       "description": "As a developer, I want tests for archive endpoints so that I can ensure functionality works correctly.",
       "acceptanceCriteria": [
         "Test GET /api/archive/topics returns archived topics only",
@@ -336,8 +310,8 @@
         "Run bun test to verify all tests pass"
       ],
       "startedAt": "2026-01-20T10:00:30.921314+00:00",
-      "completedAt": null,
-      "updatedAt": "2026-01-20T10:00:30.921531+00:00"
+      "completedAt": "2026-01-20T10:06:01.810585+00:00",
+      "updatedAt": "2026-01-20T10:06:01.810118+00:00"
     }
   ]
 }

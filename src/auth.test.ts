@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll } from "bun:test"
+import { beforeAll, describe, expect, test } from "bun:test"
 import { validateApiKey } from "./lib/auth"
 
 // Use UUID-style test values that won't trigger secret scanners

@@ -28,10 +28,7 @@ export function validateApiKey(req: Request): Response | null {
 
   // If API key is invalid, return 401
   if (apiKey !== validApiKey) {
-    return Response.json(
-      { error: "Unauthorized: Invalid API key." },
-      { status: 401 }
-    )
+    return Response.json({ error: "Unauthorized: Invalid API key." }, { status: 401 })
   }
 
   // API key is valid, allow request to proceed

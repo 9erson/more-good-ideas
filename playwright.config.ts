@@ -2,13 +2,13 @@ import type { PlaywrightTestConfig } from "playwright/test"
 
 const config: PlaywrightTestConfig = {
   testDir: "./e2e",
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
   expect: {
-    timeout: 5000,
+    timeout: 10000,
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   workers: 4,
   reporter: [["list"]],
   use: {

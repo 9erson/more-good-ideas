@@ -1,7 +1,7 @@
 import { serve } from "bun"
 import index from "./index.html"
-import { getDatabase } from "./lib/db"
 import { validateApiKey } from "./lib/auth"
+import { getDatabase } from "./lib/db"
 
 const db = getDatabase()
 
@@ -610,10 +610,12 @@ const server = serve({
           }
 
           if (idea.topicArchived === 1) {
-            const topic = db.query("SELECT id, name FROM topics WHERE id = ?").get(idea.topicId) as {
-              id: string
-              name: string
-            } | undefined
+            const topic = db.query("SELECT id, name FROM topics WHERE id = ?").get(idea.topicId) as
+              | {
+                  id: string
+                  name: string
+                }
+              | undefined
 
             return Response.json(
               {

@@ -1,9 +1,8 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from "react"
+import { AlertTriangle, RotateCcw, Trash2, X } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -12,6 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Toast,
   ToastClose,
@@ -20,16 +27,19 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
-import { X, RotateCcw, Trash2, AlertTriangle } from "lucide-react"
-import type { ArchivedTopic, ArchivedIdea, ArchiveItemType } from "@/lib/types"
+import type { ArchivedIdea, ArchivedTopic, ArchiveItemType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 type ArchiveItem = (ArchivedTopic & { type: "topic" }) | (ArchivedIdea & { type: "idea" })
 
-function ArchiveItemCard({ item, onRestoreClick, onDeleteClick }: { 
+function ArchiveItemCard({
+  item,
+  onRestoreClick,
+  onDeleteClick,
+}: {
   item: ArchiveItem
   onRestoreClick: (item: ArchiveItem) => void
-  onDeleteClick: (item: ArchiveItem) => void 
+  onDeleteClick: (item: ArchiveItem) => void
 }) {
   const formattedDate = new Date(item.updatedAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -55,7 +65,9 @@ function ArchiveItemCard({ item, onRestoreClick, onDeleteClick }: {
               </span>
             </div>
             <CardTitle className="text-xl">{item.name}</CardTitle>
-            {item.description && <CardDescription className="mt-2">{item.description}</CardDescription>}
+            {item.description && (
+              <CardDescription className="mt-2">{item.description}</CardDescription>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -80,19 +92,11 @@ function ArchiveItemCard({ item, onRestoreClick, onDeleteClick }: {
           )}
         </p>
         <div className="flex gap-2">
-          <Button
-            onClick={() => onRestoreClick(item)}
-            variant="default"
-            className="flex-1"
-          >
+          <Button onClick={() => onRestoreClick(item)} variant="default" className="flex-1">
             <RotateCcw className="h-4 w-4 mr-2" />
             Restore
           </Button>
-          <Button
-            onClick={() => onDeleteClick(item)}
-            variant="destructive"
-            className="flex-1"
-          >
+          <Button onClick={() => onDeleteClick(item)} variant="destructive" className="flex-1">
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
           </Button>
@@ -138,20 +142,20 @@ export function Archive() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [typeFilter, setTypeFilter] = useState<ArchiveItemType>("all")
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // Restore state
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
   const [itemToRestore, setItemToRestore] = useState<ArchiveItem | null>(null)
   const [isRestoring, setIsRestoring] = useState(false)
   const [restoreError, setRestoreError] = useState<string | null>(null)
-  
+
   // Delete state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<ArchiveItem | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [confirmText, setConfirmText] = useState("")
-  
+
   const [toasts, setToasts] = useState<ToastData[]>([])
 
   // Initialize state from URL params on mount
@@ -254,9 +258,7 @@ export function Archive() {
     }
 
     if (selectedTags.length > 0) {
-      items = items.filter((item) =>
-        selectedTags.every((tag) => item.tags.includes(tag))
-      )
+      items = items.filter((item) => selectedTags.every((tag) => item.tags.includes(tag)))
     }
 
     return items
@@ -289,20 +291,19 @@ export function Archive() {
   )
 
   const toggleTag = useCallback((tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag)
-        ? prev.filter((t) => t !== tag)
-        : [...prev, tag]
-    )
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
   }, [])
 
-  const addToast = useCallback((title: string, description?: string, variant?: "default" | "destructive") => {
-    const id = Math.random().toString(36).substring(2, 9)
-    setToasts((prev) => [...prev, { id, title, description, variant }])
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 5000)
-  }, [])
+  const addToast = useCallback(
+    (title: string, description?: string, variant?: "default" | "destructive") => {
+      const id = Math.random().toString(36).substring(2, 9)
+      setToasts((prev) => [...prev, { id, title, description, variant }])
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id))
+      }, 5000)
+    },
+    []
+  )
 
   const handleRestoreClick = useCallback((item: ArchiveItem) => {
     setItemToRestore(item)
@@ -326,7 +327,7 @@ export function Archive() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Failed to restore item" }))
-        
+
         if (errorData.error?.includes("parent topic is archived")) {
           setRestoreError(
             `Cannot restore this idea because its parent topic "${errorData.topic?.name || "Unknown"}" is also archived. Please restore the topic first.`
@@ -533,15 +534,15 @@ export function Archive() {
                           )}
                         >
                           {name}
-                          <span className={cn(
-                            "text-xs",
-                            isSelected ? "text-primary/70" : "text-muted-foreground"
-                          )}>
+                          <span
+                            className={cn(
+                              "text-xs",
+                              isSelected ? "text-primary/70" : "text-muted-foreground"
+                            )}
+                          >
                             ({count})
                           </span>
-                          {isSelected && (
-                            <X className="h-3 w-3" />
-                          )}
+                          {isSelected && <X className="h-3 w-3" />}
                         </button>
                       )
                     })}
@@ -551,9 +552,9 @@ export function Archive() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredItems.map((item) => (
-                  <ArchiveItemCard 
-                    key={`${item.type}-${item.id}`} 
-                    item={item} 
+                  <ArchiveItemCard
+                    key={`${item.type}-${item.id}`}
+                    item={item}
                     onRestoreClick={handleRestoreClick}
                     onDeleteClick={handleDeleteClick}
                   />
@@ -580,8 +581,10 @@ export function Archive() {
             <DialogDescription>
               {itemToRestore?.type === "topic" && (
                 <>
-                  Are you sure you want to restore the topic "{itemToRestore?.name}"? This will also restore all {itemToRestore?.ideaCount || 0} archived{" "}
-                  {(itemToRestore as ArchivedTopic)?.ideaCount === 1 ? "idea" : "ideas"} within this topic.
+                  Are you sure you want to restore the topic "{itemToRestore?.name}"? This will also
+                  restore all {itemToRestore?.ideaCount || 0} archived{" "}
+                  {(itemToRestore as ArchivedTopic)?.ideaCount === 1 ? "idea" : "ideas"} within this
+                  topic.
                 </>
               )}
               {itemToRestore?.type === "idea" && (
@@ -632,18 +635,10 @@ export function Archive() {
           )}
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleRestoreCancel}
-              disabled={isRestoring}
-            >
+            <Button variant="outline" onClick={handleRestoreCancel} disabled={isRestoring}>
               Cancel
             </Button>
-            <Button
-              variant="default"
-              onClick={handleRestoreConfirm}
-              disabled={isRestoring}
-            >
+            <Button variant="default" onClick={handleRestoreConfirm} disabled={isRestoring}>
               {isRestoring ? "Restoring..." : "Restore"}
             </Button>
           </DialogFooter>
@@ -661,12 +656,17 @@ export function Archive() {
             <DialogDescription>
               {itemToDelete?.type === "topic" && (
                 <>
-                  Are you sure you want to permanently delete the topic "{itemToDelete?.name}"? This action cannot be undone and will also delete all {itemToDelete?.ideaCount || 0}{" "}
-                  {(itemToDelete as ArchivedTopic)?.ideaCount === 1 ? "idea" : "ideas"} within this topic.
+                  Are you sure you want to permanently delete the topic "{itemToDelete?.name}"? This
+                  action cannot be undone and will also delete all {itemToDelete?.ideaCount || 0}{" "}
+                  {(itemToDelete as ArchivedTopic)?.ideaCount === 1 ? "idea" : "ideas"} within this
+                  topic.
                 </>
               )}
               {itemToDelete?.type === "idea" && (
-                <>Are you sure you want to permanently delete the idea "{itemToDelete?.name}"? This action cannot be undone.</>
+                <>
+                  Are you sure you want to permanently delete the idea "{itemToDelete?.name}"? This
+                  action cannot be undone.
+                </>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -726,11 +726,7 @@ export function Archive() {
           )}
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleDeleteCancel}
-              disabled={isDeleting}
-            >
+            <Button variant="outline" onClick={handleDeleteCancel} disabled={isDeleting}>
               Cancel
             </Button>
             <Button
@@ -751,9 +747,7 @@ export function Archive() {
           <Toast key={toast.id} variant={toast.variant}>
             <div className="grid gap-1">
               <ToastTitle>{toast.title}</ToastTitle>
-              {toast.description && (
-                <ToastDescription>{toast.description}</ToastDescription>
-              )}
+              {toast.description && <ToastDescription>{toast.description}</ToastDescription>}
             </div>
             <ToastClose />
           </Toast>

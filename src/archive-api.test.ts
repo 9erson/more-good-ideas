@@ -313,10 +313,14 @@ describe("Archive API endpoints", () => {
               }
 
               if (idea.topicArchived === 1) {
-                const topic = db.query("SELECT id, name FROM topics WHERE id = ?").get(idea.topicId) as {
-                  id: string
-                  name: string
-                } | undefined
+                const topic = db
+                  .query("SELECT id, name FROM topics WHERE id = ?")
+                  .get(idea.topicId) as
+                  | {
+                      id: string
+                      name: string
+                    }
+                  | undefined
 
                 return Response.json(
                   {
@@ -675,8 +679,12 @@ describe("Archive API endpoints", () => {
       // Verify ideas are also restored
       const ideasAfter = await fetch(`${baseURL}/api/archive/ideas`)
       const ideasAfterData = await ideasAfter.json()
-      const archivedIdea1 = ideasAfterData.find((i: { name: string }) => i.name === "Archived Idea 1")
-      const archivedIdea2 = ideasAfterData.find((i: { name: string }) => i.name === "Archived Idea 2")
+      const archivedIdea1 = ideasAfterData.find(
+        (i: { name: string }) => i.name === "Archived Idea 1"
+      )
+      const archivedIdea2 = ideasAfterData.find(
+        (i: { name: string }) => i.name === "Archived Idea 2"
+      )
       expect(archivedIdea1).toBeUndefined()
       expect(archivedIdea2).toBeUndefined()
 
@@ -697,9 +705,9 @@ describe("Archive API endpoints", () => {
 
     test("returns 400 for topic that is not archived", async () => {
       // Get an active topic
-      const activeTopic = db
-        .query("SELECT id FROM topics WHERE isArchived = 0")
-        .get() as { id: string } | undefined
+      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as
+        | { id: string }
+        | undefined
 
       expect(activeTopic).toBeDefined()
 
@@ -781,9 +789,9 @@ describe("Archive API endpoints", () => {
 
     test("returns 400 for idea that is not archived", async () => {
       // Get an active idea
-      const activeIdea = db
-        .query("SELECT id FROM ideas WHERE isArchived = 0")
-        .get() as { id: string } | undefined
+      const activeIdea = db.query("SELECT id FROM ideas WHERE isArchived = 0").get() as
+        | { id: string }
+        | undefined
 
       expect(activeIdea).toBeDefined()
 
@@ -813,7 +821,7 @@ describe("Archive API endpoints", () => {
       })
       expect(res.status).toBe(400)
 
-      const data = await res.json() as {
+      const data = (await res.json()) as {
         error: string
         topic: {
           id: string
@@ -858,9 +866,12 @@ describe("Archive API endpoints", () => {
       expect(ideaToDelete).toBeDefined()
 
       // Delete the topic
-      const res = await fetch(`${baseURL}/api/archive/topics/${topicToDelete.id}/permanent-delete`, {
-        method: "DELETE",
-      })
+      const res = await fetch(
+        `${baseURL}/api/archive/topics/${topicToDelete.id}/permanent-delete`,
+        {
+          method: "DELETE",
+        }
+      )
       expect(res.status).toBe(200)
 
       const data = await res.json()
@@ -895,18 +906,15 @@ describe("Archive API endpoints", () => {
 
     test("returns 400 for topic that is not archived", async () => {
       // Get an active topic
-      const activeTopic = db
-        .query("SELECT id FROM topics WHERE isArchived = 0")
-        .get() as { id: string } | undefined
+      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as
+        | { id: string }
+        | undefined
 
       expect(activeTopic).toBeDefined()
 
-      const res = await fetch(
-        `${baseURL}/api/archive/topics/${activeTopic!.id}/permanent-delete`,
-        {
-          method: "DELETE",
-        }
-      )
+      const res = await fetch(`${baseURL}/api/archive/topics/${activeTopic!.id}/permanent-delete`, {
+        method: "DELETE",
+      })
       expect(res.status).toBe(400)
 
       const data = await res.json()
@@ -949,9 +957,11 @@ describe("Archive API endpoints", () => {
       const now = new Date().toISOString()
 
       // Get an active topic
-      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as {
-        id: string
-      } | undefined
+      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as
+        | {
+            id: string
+          }
+        | undefined
 
       expect(activeTopic).toBeDefined()
 
@@ -984,12 +994,9 @@ describe("Archive API endpoints", () => {
     })
 
     test("returns 404 for non-existent idea", async () => {
-      const res = await fetch(
-        `${baseURL}/api/archive/ideas/non-existent-id/permanent-delete`,
-        {
-          method: "DELETE",
-        }
-      )
+      const res = await fetch(`${baseURL}/api/archive/ideas/non-existent-id/permanent-delete`, {
+        method: "DELETE",
+      })
       expect(res.status).toBe(404)
 
       const data = await res.json()
@@ -998,18 +1005,15 @@ describe("Archive API endpoints", () => {
 
     test("returns 400 for idea that is not archived", async () => {
       // Get an active idea
-      const activeIdea = db
-        .query("SELECT id FROM ideas WHERE isArchived = 0")
-        .get() as { id: string } | undefined
+      const activeIdea = db.query("SELECT id FROM ideas WHERE isArchived = 0").get() as
+        | { id: string }
+        | undefined
 
       expect(activeIdea).toBeDefined()
 
-      const res = await fetch(
-        `${baseURL}/api/archive/ideas/${activeIdea!.id}/permanent-delete`,
-        {
-          method: "DELETE",
-        }
-      )
+      const res = await fetch(`${baseURL}/api/archive/ideas/${activeIdea!.id}/permanent-delete`, {
+        method: "DELETE",
+      })
       expect(res.status).toBe(400)
 
       const data = await res.json()
@@ -1022,9 +1026,11 @@ describe("Archive API endpoints", () => {
       const tagId = randomUUID()
       const now = new Date().toISOString()
 
-      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as {
-        id: string
-      } | undefined
+      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as
+        | {
+            id: string
+          }
+        | undefined
 
       expect(activeTopic).toBeDefined()
 
