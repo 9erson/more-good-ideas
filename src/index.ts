@@ -2,6 +2,9 @@ import { serve } from "bun"
 import index from "./index.html"
 import { validateApiKey } from "./lib/auth"
 import { getDatabase } from "./lib/db"
+import { syncIdeaTags, createIdeaTags, linkIdeaTags } from "./lib/tags"
+import { updateIdeaSchema, createIdeaSchema, formatZodError } from "./lib/schemas"
+import { ZodError } from "zod"
 
 const db = getDatabase()
 
@@ -199,15 +202,14 @@ const server = serve({
 
         try {
           const body = await req.json()
-          const { topicId, name, description, tags } = body
 
-          if (!topicId || typeof topicId !== "string" || topicId.trim() === "") {
-            return Response.json({ error: "Topic is required" }, { status: 400 })
+          // Validate request body with zod schema
+          const validationResult = createIdeaSchema.safeParse(body)
+          if (!validationResult.success) {
+            return Response.json({ error: formatZodError(validationResult.error) }, { status: 400 })
           }
 
-          if (!name || typeof name !== "string" || name.trim() === "") {
-            return Response.json({ error: "Name is required" }, { status: 400 })
-          }
+          const { topicId, name, description, tags } = validationResult.data
 
           const topic = db
             .query("SELECT * FROM topics WHERE id = ? AND isArchived = 0")
@@ -232,36 +234,11 @@ const server = serve({
           db.query(`
             INSERT INTO ideas (id, topicId, name, description, isArchived, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, 0, ?, ?)
-          `).run(ideaId, topicId, name.trim(), description || null, now, now)
+          `).run(ideaId, topicId, name, description || null, now, now)
 
-          const tagIds: string[] = []
-
-          if (tags && Array.isArray(tags) && tags.length > 0) {
-            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)")
-            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)")
-
-            for (const tag of tags) {
-              const tagName = tag.trim()
-              if (!tagName) continue
-
-              const existingTag = getTagId.get(tagName) as { id: string } | undefined
-
-              if (existingTag) {
-                tagIds.push(existingTag.id)
-              } else {
-                const tagId = crypto.randomUUID()
-                insertTag.run(tagId, tagName)
-                tagIds.push(tagId)
-              }
-            }
-
-            const linkTag = db.query(
-              "INSERT OR IGNORE INTO idea_tags (ideaId, tagId) VALUES (?, ?)"
-            )
-            for (const tagId of tagIds) {
-              linkTag.run(ideaId, tagId)
-            }
-          }
+          // Create and link tags using shared helpers
+          const { tagIds } = createIdeaTags(db, tags)
+          linkIdeaTags(db, ideaId, tagIds)
 
           const idea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as {
             id: string
@@ -283,6 +260,9 @@ const server = serve({
             updatedAt: idea.updatedAt,
           })
         } catch (error) {
+          if (error instanceof ZodError) {
+            return Response.json({ error: formatZodError(error) }, { status: 400 })
+          }
           console.error("Error creating idea:", error)
           return Response.json({ error: "Failed to create idea" }, { status: 500 })
         }
@@ -373,17 +353,16 @@ const server = serve({
         try {
           const ideaId = req.params.id!
           const body = await req.json()
-          const { topicId, name, description, tags } = body
 
-          if (!name || typeof name !== "string" || name.trim() === "") {
-            return Response.json({ error: "Name is required" }, { status: 400 })
+          // Validate request body with zod schema
+          const validationResult = updateIdeaSchema.safeParse(body)
+          if (!validationResult.success) {
+            return Response.json({ error: formatZodError(validationResult.error) }, { status: 400 })
           }
 
-          if (!topicId || typeof topicId !== "string" || topicId.trim() === "") {
-            return Response.json({ error: "Topic is required" }, { status: 400 })
-          }
+          const { topicId, name, description, tags } = validationResult.data
 
-          const existingIdea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId!) as
+          const existingIdea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as
             | {
                 id: string
                 topicId: string
@@ -399,7 +378,7 @@ const server = serve({
             return Response.json({ error: "Idea not found" }, { status: 404 })
           }
 
-          const newTopic = db.query("SELECT * FROM topics WHERE id = ? AND isArchived = 0").get(topicId!) as
+          const newTopic = db.query("SELECT * FROM topics WHERE id = ? AND isArchived = 0").get(topicId) as
             | {
                 id: string
                 name: string
@@ -420,48 +399,12 @@ const server = serve({
             UPDATE ideas
             SET name = ?, description = ?, topicId = ?, updatedAt = ?
             WHERE id = ?
-          `).run(name.trim(), description || null, topicId, now, ideaId)
+          `).run(name, description || null, topicId, now, ideaId)
 
-          if (tags && Array.isArray(tags)) {
-            const existingTagLinks = db
-              .query("SELECT tagId FROM idea_tags WHERE ideaId = ?")
-              .all(ideaId!) as Array<{ tagId: string }>
-            const existingTagIds = existingTagLinks.map((t) => t.tagId)
+          // Sync tags using shared helper
+          syncIdeaTags(db, ideaId, tags)
 
-            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)")
-            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)")
-            const linkTag = db.query(
-              "INSERT OR IGNORE INTO idea_tags (ideaId, tagId) VALUES (?, ?)"
-            )
-            const unlinkTag = db.query("DELETE FROM idea_tags WHERE ideaId = ? AND tagId = ?")
-
-            const newTagIds: string[] = []
-
-            for (const tag of tags) {
-              const tagName = tag.trim()
-              if (!tagName) continue
-
-              const existingTag = getTagId.get(tagName) as { id: string } | undefined
-
-              if (existingTag) {
-                newTagIds.push(existingTag.id)
-                linkTag.run(ideaId!, existingTag.id)
-              } else {
-                const tagId = crypto.randomUUID()
-                insertTag.run(tagId, tagName)
-                newTagIds.push(tagId)
-                linkTag.run(ideaId!, tagId)
-              }
-            }
-
-            for (const oldTagId of existingTagIds) {
-              if (!newTagIds.includes(oldTagId)) {
-                unlinkTag.run(ideaId!, oldTagId)
-              }
-            }
-          }
-
-          const idea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId!) as {
+          const idea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as {
             id: string
             topicId: string
             name: string
@@ -481,6 +424,9 @@ const server = serve({
             updatedAt: idea.updatedAt,
           })
         } catch (error) {
+          if (error instanceof ZodError) {
+            return Response.json({ error: formatZodError(error) }, { status: 400 })
+          }
           console.error("Error updating idea:", error)
           return Response.json({ error: "Failed to update idea" }, { status: 500 })
         }
