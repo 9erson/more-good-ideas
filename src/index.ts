@@ -295,11 +295,11 @@ const server = serve({
         if (authError) return authError
 
         try {
-          const ideaId = req.params.id
+          const ideaId = req.params.id!
 
           const idea = db
             .query(`
-            SELECT 
+            SELECT
               i.id,
               i.topicId,
               i.name,
@@ -363,6 +363,126 @@ const server = serve({
         } catch (error) {
           console.error("Error fetching idea:", error)
           return Response.json({ error: "Failed to fetch idea" }, { status: 500 })
+        }
+      },
+
+      async PUT(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
+        try {
+          const ideaId = req.params.id!
+          const body = await req.json()
+          const { topicId, name, description, tags } = body
+
+          if (!name || typeof name !== "string" || name.trim() === "") {
+            return Response.json({ error: "Name is required" }, { status: 400 })
+          }
+
+          if (!topicId || typeof topicId !== "string" || topicId.trim() === "") {
+            return Response.json({ error: "Topic is required" }, { status: 400 })
+          }
+
+          const existingIdea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId!) as
+            | {
+                id: string
+                topicId: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
+
+          if (!existingIdea || existingIdea.isArchived === 1) {
+            return Response.json({ error: "Idea not found" }, { status: 404 })
+          }
+
+          const newTopic = db.query("SELECT * FROM topics WHERE id = ? AND isArchived = 0").get(topicId!) as
+            | {
+                id: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
+
+          if (!newTopic) {
+            return Response.json({ error: "Topic not found" }, { status: 400 })
+          }
+
+          const now = new Date().toISOString()
+
+          db.query(`
+            UPDATE ideas
+            SET name = ?, description = ?, topicId = ?, updatedAt = ?
+            WHERE id = ?
+          `).run(name.trim(), description || null, topicId, now, ideaId)
+
+          if (tags && Array.isArray(tags)) {
+            const existingTagLinks = db
+              .query("SELECT tagId FROM idea_tags WHERE ideaId = ?")
+              .all(ideaId!) as Array<{ tagId: string }>
+            const existingTagIds = existingTagLinks.map((t) => t.tagId)
+
+            const insertTag = db.query("INSERT OR IGNORE INTO tags (id, name) VALUES (?, ?)")
+            const getTagId = db.query("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)")
+            const linkTag = db.query(
+              "INSERT OR IGNORE INTO idea_tags (ideaId, tagId) VALUES (?, ?)"
+            )
+            const unlinkTag = db.query("DELETE FROM idea_tags WHERE ideaId = ? AND tagId = ?")
+
+            const newTagIds: string[] = []
+
+            for (const tag of tags) {
+              const tagName = tag.trim()
+              if (!tagName) continue
+
+              const existingTag = getTagId.get(tagName) as { id: string } | undefined
+
+              if (existingTag) {
+                newTagIds.push(existingTag.id)
+                linkTag.run(ideaId!, existingTag.id)
+              } else {
+                const tagId = crypto.randomUUID()
+                insertTag.run(tagId, tagName)
+                newTagIds.push(tagId)
+                linkTag.run(ideaId!, tagId)
+              }
+            }
+
+            for (const oldTagId of existingTagIds) {
+              if (!newTagIds.includes(oldTagId)) {
+                unlinkTag.run(ideaId!, oldTagId)
+              }
+            }
+          }
+
+          const idea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId!) as {
+            id: string
+            topicId: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+          }
+
+          return Response.json({
+            id: idea.id,
+            topicId: idea.topicId,
+            name: idea.name,
+            description: idea.description,
+            isArchived: idea.isArchived === 1,
+            createdAt: idea.createdAt,
+            updatedAt: idea.updatedAt,
+          })
+        } catch (error) {
+          console.error("Error updating idea:", error)
+          return Response.json({ error: "Failed to update idea" }, { status: 500 })
         }
       },
     },
