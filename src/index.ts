@@ -1,8 +1,22 @@
 import { serve } from "bun"
 import index from "./index.html"
 import { getDatabase } from "./lib/db"
+import { validateApiKey } from "./lib/auth"
 
 const db = getDatabase()
+
+// Helper function to wrap route handlers with authentication
+function withAuth(
+  handler: (req: Request) => Response | Promise<Response>
+): (req: Request) => Response | Promise<Response> {
+  return (req: Request) => {
+    const authError = validateApiKey(req)
+    if (authError) {
+      return authError
+    }
+    return handler(req)
+  }
+}
 
 const server = serve({
   routes: {
@@ -33,6 +47,9 @@ const server = serve({
 
     "/api/topics": {
       async GET() {
+        const authError = validateApiKey(this.request)
+        if (authError) return authError
+
         try {
           const topics = db
             .query(`
@@ -86,6 +103,9 @@ const server = serve({
       },
 
       async POST(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const body = await req.json()
           const { name, description, tags } = body
@@ -157,6 +177,9 @@ const server = serve({
 
     "/api/tags": {
       async GET() {
+        const authError = validateApiKey(this.request)
+        if (authError) return authError
+
         try {
           const tags = db.query("SELECT name FROM tags ORDER BY LOWER(name)").all() as Array<{
             name: string
@@ -171,6 +194,9 @@ const server = serve({
 
     "/api/ideas": {
       async POST(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const body = await req.json()
           const { topicId, name, description, tags } = body
@@ -265,6 +291,9 @@ const server = serve({
 
     "/api/ideas/:id": {
       async GET(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const ideaId = req.params.id
 
@@ -340,6 +369,9 @@ const server = serve({
 
     "/api/archive/topics": {
       async GET() {
+        const authError = validateApiKey(this.request)
+        if (authError) return authError
+
         try {
           const topics = db
             .query(`
@@ -395,6 +427,9 @@ const server = serve({
 
     "/api/archive/ideas": {
       async GET() {
+        const authError = validateApiKey(this.request)
+        if (authError) return authError
+
         try {
           const ideas = db
             .query(`
@@ -452,6 +487,9 @@ const server = serve({
 
     "/api/archive/topics/:id/restore": {
       async POST(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const topicId = req.params.id
 
@@ -539,6 +577,9 @@ const server = serve({
 
     "/api/archive/ideas/:id/restore": {
       async POST(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const ideaId = req.params.id
 
@@ -649,6 +690,9 @@ const server = serve({
 
     "/api/archive/topics/:id/permanent-delete": {
       async DELETE(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const topicId = req.params.id
 
@@ -694,6 +738,9 @@ const server = serve({
 
     "/api/archive/ideas/:id/permanent-delete": {
       async DELETE(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const ideaId = req.params.id
 
@@ -738,28 +785,35 @@ const server = serve({
       },
     },
 
-    "/api/test/cleanup": {
-      async POST() {
-        if (process.env.NODE_ENV === "production") {
-          return Response.json({ error: "Not allowed in production" }, { status: 403 })
-        }
-        try {
-          db.exec("DELETE FROM feedback")
-          db.exec("DELETE FROM idea_tags")
-          db.exec("DELETE FROM topic_tags")
-          db.exec("DELETE FROM ideas")
-          db.exec("DELETE FROM topics")
-          db.exec("DELETE FROM tags")
-          return Response.json({ success: true })
-        } catch (error) {
-          console.error("Error cleaning up database:", error)
-          return Response.json({ error: "Failed to cleanup database" }, { status: 500 })
-        }
-      },
-    },
+    // Test cleanup endpoint - only available in development mode
+    ...(process.env.NODE_ENV !== "production"
+      ? [
+          {
+            "/api/test/cleanup": {
+              async POST() {
+                try {
+                  db.exec("DELETE FROM feedback")
+                  db.exec("DELETE FROM idea_tags")
+                  db.exec("DELETE FROM topic_tags")
+                  db.exec("DELETE FROM ideas")
+                  db.exec("DELETE FROM topics")
+                  db.exec("DELETE FROM tags")
+                  return Response.json({ success: true })
+                } catch (error) {
+                  console.error("Error cleaning up database:", error)
+                  return Response.json({ error: "Failed to cleanup database" }, { status: 500 })
+                }
+              },
+            },
+          },
+        ]
+      : []),
 
     "/api/topics/:id": {
       async GET(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const topicId = req.params.id
 
@@ -867,6 +921,9 @@ const server = serve({
       },
 
       async PUT(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const topicId = req.params.id
           const body = await req.json()
@@ -962,6 +1019,9 @@ const server = serve({
       },
 
       async DELETE(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
         try {
           const topicId = req.params.id
 
