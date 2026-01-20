@@ -5,6 +5,88 @@ Started: Fri Jan 16 07:55:21 IST 2026
 - (add reusable patterns here)
 
 ---
+## [Mon Jan 20 2026] - US-005: Implement restore functionality with confirmation
+Thread:
+Run: 20260120-141154-66509 (iteration 5)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-5.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-5.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 3a6a149 feat(archive): implement restore functionality with confirmation dialog
+- Post-commit status: clean (for story changes)
+- Verification:
+  - Command: bun test ./src -> PASS (35 unit tests pass)
+  - Command: bun run typecheck -> PASS
+  - Command: bun run build -> PASS
+  - Browser verification: PASS (restore functionality fully tested)
+- Files changed:
+  - src/components/Archive.tsx (added restore button, modal, toast, error handling)
+  - src/components/ui/toast.tsx (created new toast component)
+  - package.json (added @radix-ui/react-toast and @radix-ui/react-dialog dependencies)
+  - bun.lock (updated with new dependencies)
+  - .ralph/activity.log (updated with work log)
+  - .ralph/errors.log (no new errors)
+  - .ralph/progress.md (updated with this entry)
+- What was implemented:
+  - Added 'Restore' button to each archived item card (ArchiveItemCard component)
+  - Implemented confirmation modal showing:
+    - Item type badge (Topic/Idea)
+    - Item name and description
+    - Item tags as badge pills
+    - Special message for topics with idea count
+  - Created Toast component using @radix-ui/react-toast for notifications
+  - Implemented restore API integration with error handling:
+    - POST /api/archive/topics/:id/restore for topics
+    - POST /api/archive/ideas/:id/restore for ideas
+    - Special handling for ideas with archived parent topics
+  - On successful restore:
+    - Item removed from archive list (local state update)
+    - Success toast notification appears with message
+    - Modal closes automatically
+  - On error:
+    - Error message displayed in modal with destructive styling
+    - Specific error for archived parent topic: "Cannot restore this idea because its parent topic \"X\" is also archived. Please restore the topic first."
+    - Buttons remain enabled for retry
+  - Loading state: "Restoring..." text and disabled buttons during API call
+  - Modal has Cancel and Restore buttons with proper styling
+  - Verified in browser:
+    - Clicked Restore button on archived topic
+    - Modal appeared with correct details (type: Topic, name, description, tags, idea count)
+    - Confirmed restore and saw toast notification: "Item restored - Topic 'Archived Topic 1' has been restored."
+    - Item removed from list immediately
+    - Tag count updated (archive-tag-1 went from 2 to 1)
+    - Tested error case by trying to restore already-restored idea
+    - Error message appeared in modal: "Idea is not archived"
+  - All acceptance criteria met:
+    - ✓ Add 'Restore' button to each item card
+    - ✓ Clicking restore shows confirmation modal with item details
+    - ✓ Confirmation modal shows: item type, name, description, tags
+    - ✓ On confirm: call restore API and update UI
+    - ✓ Show success toast notification on successful restore
+    - ✓ Remove restored item from archive list
+    - ✓ If restoring idea with archived topic: show special confirmation (API returns error, frontend displays message)
+    - ✓ Example: restore button shows modal, confirming removes item from list
+    - ✓ Negative case: API error shows error message in modal with retry option
+    - ✓ Modal has 'Cancel' and 'Restore' buttons
+- **Learnings for future iterations:**
+  - Toast component requires ToastProvider wrapper and ToastViewport for positioning
+  - Toast state management: use array of toast objects with setTimeout for auto-dismiss
+  - Dialog component uses open/onOpenChange props for controlled state
+  - Discriminated union types (ArchiveItem with type: "topic" | "idea") provide type safety
+  - Local state update (filtering out restored item) prevents refetch and provides instant feedback
+  - Error handling for archived parent topic requires checking error message for specific text
+  - Radix UI Dialog handles overlay, close button, and escape key automatically
+  - dev-browser skill: ARIA snapshot refs change after modal opens, need fresh snapshot
+  - Playwright locator clicking: use .all() to get array of elements when multiple matches exist
+  - Testing cascade behavior: restoring topic automatically restores its ideas
+  - bun:sqlite cascade restore happens in backend (US-004), frontend just updates UI
+  - Toast notifications use role="status" for accessibility
+  - Modal error messages use destructive variant with red border and text
+  - Loading state prevents double-clicks during async operations
+  - @radix-ui/react-dialog was in devDependencies, moved to dependencies for production use
+  - @radix-ui/react-toast added as new dependency for notification system
+
+---
 ## [Fri Jan 16 2026] - US-001: Initialize project and setup development environment
 Thread:
 Run: 20260116-075521-53841 (iteration 1)
