@@ -1,5 +1,9 @@
 const BASE_URL = "http://localhost:3000"
 
+// Test API key - must match what's set in the test environment
+// For production e2e tests, we need to provide the API key
+const TEST_API_KEY = process.env.API_KEY || "test-api-key-for-e2e"
+
 export type Topic = {
   id: string
   name: string
@@ -40,7 +44,10 @@ export type IdeaInput = {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": TEST_API_KEY,
+    },
     ...options,
   })
 

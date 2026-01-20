@@ -9,7 +9,7 @@ const config: PlaywrightTestConfig = {
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
-  workers: 4,
+  workers: 1, // Use single worker to avoid shared state issues
   reporter: [["list"]],
   use: {
     baseURL: "http://localhost:3000",
@@ -31,7 +31,7 @@ const config: PlaywrightTestConfig = {
     },
   ],
   webServer: {
-    command: "bun run start",
+    command: "API_KEY=test-api-key-for-e2e NODE_ENV=development bun run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },

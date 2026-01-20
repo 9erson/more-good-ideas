@@ -431,6 +431,48 @@ const server = serve({
           return Response.json({ error: "Failed to update idea" }, { status: 500 })
         }
       },
+
+      async DELETE(req) {
+        const authError = validateApiKey(req)
+        if (authError) return authError
+
+        try {
+          const ideaId = req.params.id!
+
+          const existingIdea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as
+            | {
+                id: string
+                topicId: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
+
+          if (!existingIdea) {
+            return Response.json({ error: "Idea not found" }, { status: 404 })
+          }
+
+          if (existingIdea.isArchived === 1) {
+            return Response.json({ error: "Idea is already archived" }, { status: 400 })
+          }
+
+          const now = new Date().toISOString()
+
+          db.query(`
+            UPDATE ideas
+            SET isArchived = 1, updatedAt = ?
+            WHERE id = ?
+          `).run(now, ideaId)
+
+          return Response.json({ success: true })
+        } catch (error) {
+          console.error("Error deleting idea:", error)
+          return Response.json({ error: "Failed to delete idea" }, { status: 500 })
+        }
+      },
     },
 
     "/api/archive/topics": {
@@ -855,27 +897,25 @@ const server = serve({
 
     // Test cleanup endpoint - only available in development mode
     ...(process.env.NODE_ENV !== "production"
-      ? [
-          {
-            "/api/test/cleanup": {
-              async POST() {
-                try {
-                  db.exec("DELETE FROM feedback")
-                  db.exec("DELETE FROM idea_tags")
-                  db.exec("DELETE FROM topic_tags")
-                  db.exec("DELETE FROM ideas")
-                  db.exec("DELETE FROM topics")
-                  db.exec("DELETE FROM tags")
-                  return Response.json({ success: true })
-                } catch (error) {
-                  console.error("Error cleaning up database:", error)
-                  return Response.json({ error: "Failed to cleanup database" }, { status: 500 })
-                }
-              },
+      ? Object.assign({}, {
+          "/api/test/cleanup": {
+            async POST() {
+              try {
+                db.exec("DELETE FROM feedback")
+                db.exec("DELETE FROM idea_tags")
+                db.exec("DELETE FROM topic_tags")
+                db.exec("DELETE FROM ideas")
+                db.exec("DELETE FROM topics")
+                db.exec("DELETE FROM tags")
+                return Response.json({ success: true })
+              } catch (error) {
+                console.error("Error cleaning up database:", error)
+                return Response.json({ error: "Failed to cleanup database" }, { status: 500 })
+              }
             },
           },
-        ]
-      : []),
+        })
+      : {}),
 
     "/api/topics/:id": {
       async GET(req) {

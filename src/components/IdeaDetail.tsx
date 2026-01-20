@@ -36,6 +36,7 @@ export function IdeaDetail() {
   const [notFound, setNotFound] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -63,12 +64,20 @@ export function IdeaDetail() {
     if (!idea) return
 
     setIsDeleting(true)
+    setDeleteError(null)
 
     try {
-      // Note: DELETE endpoint not implemented yet, this will fail
-      // This is prepared for US-008
+      const apiKey = localStorage.getItem("apiKey")
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      }
+      if (apiKey) {
+        headers["X-API-Key"] = apiKey
+      }
+
       const res = await fetch(`/api/ideas/${idea.id}`, {
         method: "DELETE",
+        headers,
       })
 
       if (!res.ok) {
@@ -79,8 +88,8 @@ export function IdeaDetail() {
       navigate(`/topics/${idea.topicId}`)
     } catch (err) {
       console.error("Failed to delete idea:", err)
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete idea")
       setIsDeleting(false)
-      setDeleteDialogOpen(false)
     }
   }
 
@@ -239,6 +248,11 @@ export function IdeaDetail() {
               action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+              {deleteError}
+            </div>
+          )}
           <DialogFooter>
             <Button
               variant="outline"
