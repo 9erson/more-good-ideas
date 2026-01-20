@@ -450,6 +450,203 @@ const server = serve({
       },
     },
 
+    "/api/archive/topics/:id/restore": {
+      async POST(req) {
+        try {
+          const topicId = req.params.id
+
+          const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
+            | {
+                id: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
+
+          if (!existingTopic) {
+            return Response.json({ error: "Topic not found" }, { status: 404 })
+          }
+
+          if (existingTopic.isArchived === 0) {
+            return Response.json({ error: "Topic is not archived" }, { status: 400 })
+          }
+
+          const now = new Date().toISOString()
+
+          db.query(`
+            UPDATE topics
+            SET isArchived = 0, updatedAt = ?
+            WHERE id = ?
+          `).run(now, topicId)
+
+          db.query(`
+            UPDATE ideas
+            SET isArchived = 0, updatedAt = ?
+            WHERE topicId = ?
+          `).run(now, topicId)
+
+          const restoredTopic = db
+            .query(`
+            SELECT
+              t.id,
+              t.name,
+              t.description,
+              t.isArchived,
+              t.createdAt,
+              t.updatedAt,
+              COUNT(i.id) as ideaCount,
+              (
+                SELECT GROUP_CONCAT(tag.name, ',')
+                FROM topic_tags tt
+                JOIN tags tag ON tag.id = tt.tagId
+                WHERE tt.topicId = t.id
+              ) as tags
+            FROM topics t
+            LEFT JOIN ideas i ON i.topicId = t.id AND i.isArchived = 0
+            WHERE t.id = ?
+            GROUP BY t.id
+          `)
+            .get(topicId) as {
+            id: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+            ideaCount: number
+            tags: string | null
+          }
+
+          return Response.json({
+            id: restoredTopic.id,
+            name: restoredTopic.name,
+            description: restoredTopic.description,
+            isArchived: restoredTopic.isArchived === 1,
+            ideaCount: restoredTopic.ideaCount,
+            tags: restoredTopic.tags ? restoredTopic.tags.split(",") : [],
+            createdAt: restoredTopic.createdAt,
+            updatedAt: restoredTopic.updatedAt,
+          })
+        } catch (error) {
+          console.error("Error restoring topic:", error)
+          return Response.json({ error: "Failed to restore topic" }, { status: 500 })
+        }
+      },
+    },
+
+    "/api/archive/ideas/:id/restore": {
+      async POST(req) {
+        try {
+          const ideaId = req.params.id
+
+          const idea = db
+            .query(`
+            SELECT i.id, i.topicId, i.name, i.description, i.isArchived, t.isArchived as topicArchived
+            FROM ideas i
+            LEFT JOIN topics t ON t.id = i.topicId
+            WHERE i.id = ?
+          `)
+            .get(ideaId) as
+            | {
+                id: string
+                topicId: string
+                name: string
+                description: string | null
+                isArchived: number
+                topicArchived: number
+              }
+            | undefined
+
+          if (!idea) {
+            return Response.json({ error: "Idea not found" }, { status: 404 })
+          }
+
+          if (idea.isArchived === 0) {
+            return Response.json({ error: "Idea is not archived" }, { status: 400 })
+          }
+
+          if (idea.topicArchived === 1) {
+            const topic = db.query("SELECT id, name FROM topics WHERE id = ?").get(idea.topicId) as {
+              id: string
+              name: string
+            } | undefined
+
+            return Response.json(
+              {
+                error: "Cannot restore idea because its parent topic is archived",
+                topic: topic
+                  ? {
+                      id: topic.id,
+                      name: topic.name,
+                    }
+                  : null,
+              },
+              { status: 400 }
+            )
+          }
+
+          const now = new Date().toISOString()
+
+          db.query(`
+            UPDATE ideas
+            SET isArchived = 0, updatedAt = ?
+            WHERE id = ?
+          `).run(now, ideaId)
+
+          const restoredIdea = db
+            .query(`
+            SELECT
+              i.id,
+              i.topicId,
+              i.name,
+              i.description,
+              i.isArchived,
+              i.createdAt,
+              i.updatedAt,
+              t.name as topicName,
+              (
+                SELECT GROUP_CONCAT(tag.name, ',')
+                FROM idea_tags it
+                JOIN tags tag ON tag.id = it.tagId
+                WHERE it.ideaId = i.id
+              ) as tags
+            FROM ideas i
+            LEFT JOIN topics t ON t.id = i.topicId
+            WHERE i.id = ?
+          `)
+            .get(ideaId) as {
+            id: string
+            topicId: string
+            name: string
+            description: string | null
+            isArchived: number
+            createdAt: string
+            updatedAt: string
+            topicName: string | null
+            tags: string | null
+          }
+
+          return Response.json({
+            id: restoredIdea.id,
+            topicId: restoredIdea.topicId,
+            name: restoredIdea.name,
+            description: restoredIdea.description,
+            isArchived: restoredIdea.isArchived === 1,
+            topicName: restoredIdea.topicName,
+            tags: restoredIdea.tags ? restoredIdea.tags.split(",") : [],
+            createdAt: restoredIdea.createdAt,
+            updatedAt: restoredIdea.updatedAt,
+          })
+        } catch (error) {
+          console.error("Error restoring idea:", error)
+          return Response.json({ error: "Failed to restore idea" }, { status: 500 })
+        }
+      },
+    },
+
     "/api/test/cleanup": {
       async POST() {
         if (process.env.NODE_ENV === "production") {
