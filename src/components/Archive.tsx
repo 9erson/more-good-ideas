@@ -4,13 +4,30 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { X } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast"
+import * as React from "react"
+import { X, RotateCcw } from "lucide-react"
 import type { ArchivedTopic, ArchivedIdea, ArchiveItemType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 type ArchiveItem = (ArchivedTopic & { type: "topic" }) | (ArchivedIdea & { type: "idea" })
 
-function ArchiveItemCard({ item }: { item: ArchiveItem }) {
+function ArchiveItemCard({ item, onRestoreClick }: { item: ArchiveItem; onRestoreClick: (item: ArchiveItem) => void }) {
   const formattedDate = new Date(item.updatedAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -18,8 +35,8 @@ function ArchiveItemCard({ item }: { item: ArchiveItem }) {
   })
 
   return (
-    <Card className="h-full transition-all hover:shadow-md">
-      <CardHeader>
+    <Card className="h-full transition-all hover:shadow-md flex flex-col">
+      <CardHeader className="flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -50,7 +67,7 @@ function ArchiveItemCard({ item }: { item: ArchiveItem }) {
             </span>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground mb-4">
           {item.type === "topic" ? (
             <>
               {item.ideaCount} {item.ideaCount === 1 ? "idea" : "ideas"} · Archived {formattedDate}
@@ -59,6 +76,14 @@ function ArchiveItemCard({ item }: { item: ArchiveItem }) {
             <>Archived {formattedDate}</>
           )}
         </p>
+        <Button
+          onClick={() => onRestoreClick(item)}
+          variant="default"
+          className="w-full"
+        >
+          <RotateCcw className="h-4 w-4 mr-2" />
+          Restore
+        </Button>
       </CardContent>
     </Card>
   )
@@ -82,6 +107,13 @@ function SkeletonCard() {
   )
 }
 
+type ToastData = {
+  id: string
+  title: string
+  description?: string
+  variant?: "default" | "destructive"
+}
+
 export function Archive() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [topics, setTopics] = useState<ArchivedTopic[]>([])
@@ -93,6 +125,13 @@ export function Archive() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [typeFilter, setTypeFilter] = useState<ArchiveItemType>("all")
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Restore state
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
+  const [itemToRestore, setItemToRestore] = useState<ArchiveItem | null>(null)
+  const [isRestoring, setIsRestoring] = useState(false)
+  const [restoreError, setRestoreError] = useState<string | null>(null)
+  const [toasts, setToasts] = useState<ToastData[]>([])
 
   // Initialize state from URL params on mount
   useEffect(() => {
@@ -236,6 +275,80 @@ export function Archive() {
     )
   }, [])
 
+  const addToast = useCallback((title: string, description?: string, variant?: "default" | "destructive") => {
+    const id = Math.random().toString(36).substring(2, 9)
+    setToasts((prev) => [...prev, { id, title, description, variant }])
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id))
+    }, 5000)
+  }, [])
+
+  const handleRestoreClick = useCallback((item: ArchiveItem) => {
+    setItemToRestore(item)
+    setRestoreDialogOpen(true)
+    setRestoreError(null)
+  }, [])
+
+  const handleRestoreConfirm = useCallback(async () => {
+    if (!itemToRestore) return
+
+    setIsRestoring(true)
+    setRestoreError(null)
+
+    try {
+      const endpoint =
+        itemToRestore.type === "topic"
+          ? `/api/archive/topics/${itemToRestore.id}/restore`
+          : `/api/archive/ideas/${itemToRestore.id}/restore`
+
+      const response = await fetch(endpoint, { method: "POST" })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Failed to restore item" }))
+        
+        if (errorData.error?.includes("parent topic is archived")) {
+          setRestoreError(
+            `Cannot restore this idea because its parent topic "${errorData.topic?.name || "Unknown"}" is also archived. Please restore the topic first.`
+          )
+        } else {
+          setRestoreError(errorData.error || "Failed to restore item")
+        }
+        setIsRestoring(false)
+        return
+      }
+
+      // Remove from local state
+      if (itemToRestore.type === "topic") {
+        setTopics((prev) => prev.filter((t) => t.id !== itemToRestore.id))
+      } else {
+        setIdeas((prev) => prev.filter((i) => i.id !== itemToRestore.id))
+      }
+
+      // Show success toast
+      addToast(
+        "Item restored",
+        itemToRestore.type === "topic"
+          ? `Topic "${itemToRestore.name}" has been restored.`
+          : `Idea "${itemToRestore.name}" has been restored.`,
+        "default"
+      )
+
+      // Close dialog
+      setRestoreDialogOpen(false)
+      setItemToRestore(null)
+    } catch (err) {
+      setRestoreError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setIsRestoring(false)
+    }
+  }, [itemToRestore, addToast])
+
+  const handleRestoreCancel = useCallback(() => {
+    setRestoreDialogOpen(false)
+    setItemToRestore(null)
+    setRestoreError(null)
+  }, [])
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-64 border-r border-border bg-muted/40 p-6 hidden lg:block">
@@ -355,7 +468,11 @@ export function Archive() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredItems.map((item) => (
-                  <ArchiveItemCard key={`${item.type}-${item.id}`} item={item} />
+                  <ArchiveItemCard 
+                    key={`${item.type}-${item.id}`} 
+                    item={item} 
+                    onRestoreClick={handleRestoreClick}
+                  />
                 ))}
               </div>
             </>
@@ -370,6 +487,100 @@ export function Archive() {
           </div>
         </div>
       </main>
+
+      {/* Restore Confirmation Dialog */}
+      <Dialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restore {itemToRestore?.type === "topic" ? "Topic" : "Idea"}</DialogTitle>
+            <DialogDescription>
+              {itemToRestore?.type === "topic" && (
+                <>
+                  Are you sure you want to restore the topic "{itemToRestore?.name}"? This will also restore all {itemToRestore?.ideaCount || 0} archived{" "}
+                  {(itemToRestore as ArchivedTopic)?.ideaCount === 1 ? "idea" : "ideas"} within this topic.
+                </>
+              )}
+              {itemToRestore?.type === "idea" && (
+                <>Are you sure you want to restore the idea "{itemToRestore?.name}"?</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {itemToRestore && (
+            <div className="py-4">
+              <div className="rounded-lg border border-border bg-secondary/20 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={
+                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold " +
+                      (itemToRestore.type === "topic"
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400")
+                    }
+                  >
+                    {itemToRestore.type === "topic" ? "Topic" : "Idea"}
+                  </span>
+                </div>
+                <h4 className="font-semibold text-sm mb-1">{itemToRestore.name}</h4>
+                {itemToRestore.description && (
+                  <p className="text-sm text-muted-foreground mb-2">{itemToRestore.description}</p>
+                )}
+                {itemToRestore.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {itemToRestore.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center rounded-full border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {restoreError && (
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
+              <p className="text-sm text-destructive">{restoreError}</p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleRestoreCancel}
+              disabled={isRestoring}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleRestoreConfirm}
+              disabled={isRestoring}
+            >
+              {isRestoring ? "Restoring..." : "Restore"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Toast Notifications */}
+      <ToastProvider>
+        <ToastViewport />
+        {toasts.map((toast) => (
+          <Toast key={toast.id} variant={toast.variant}>
+            <div className="grid gap-1">
+              <ToastTitle>{toast.title}</ToastTitle>
+              {toast.description && (
+                <ToastDescription>{toast.description}</ToastDescription>
+              )}
+            </div>
+            <ToastClose />
+          </Toast>
+        ))}
+      </ToastProvider>
     </div>
   )
 }

@@ -521,3 +521,65 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-
   - Browser testing had dev server issues, but code review confirmed implementation correctness
   - E2E tests have pre-existing Playwright configuration issues not related to this story
 ---
+## [Mon Jan 20 2026] - US-004: Create restore API endpoints
+Thread:
+Run: 20260120-141154-66509 (iteration 4)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-4.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-4.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 721dfa3 feat(archive): implement restore API endpoints for topics and ideas
+- Post-commit status: clean (for story changes)
+- Verification:
+  - Command: bun test ./src -> PASS (35 unit tests pass, 17 archive tests including 9 new)
+  - Command: bun run typecheck -> PASS
+  - Command: bun run build -> PASS
+- Files changed:
+  - src/index.ts (added POST /api/archive/topics/:id/restore and POST /api/archive/ideas/:id/restore endpoints)
+  - src/archive-api.test.ts (added 9 comprehensive tests for restore endpoints)
+- What was implemented:
+  - Created POST /api/archive/topics/:id/restore endpoint:
+    - Validates topic exists (404 if not found)
+    - Validates topic is archived (400 if already active)
+    - Sets topic.isArchived = 0 and updates updatedAt timestamp
+    - Cascades restore to all ideas in topic (sets isArchived = 0)
+    - Returns restored topic with idea count, tags, and timestamps
+  - Created POST /api/archive/ideas/:id/restore endpoint:
+    - Validates idea exists (404 if not found)
+    - Validates idea is archived (400 if already active)
+    - Checks if parent topic is archived (returns 400 with topic info if so)
+    - Sets idea.isArchived = 0 and updates updatedAt timestamp
+    - Returns restored idea with topic name, tags, and timestamps
+  - Error handling:
+    - 404 for non-existent items
+    - 400 for items that are not archived
+    - 400 for ideas with archived parent topics (with topic info in response)
+    - 500 for database failures (try-catch with logging)
+  - Added 9 comprehensive tests covering all acceptance criteria:
+    - Topic restore with cascade to ideas (restores topic and all 5 ideas)
+    - Idea restore with parent topic validation
+    - Error cases: 404 for non-existent, 400 for not archived, 400 for archived parent topic
+    - Test data cleanup (re-archive after testing for isolation)
+  - All acceptance criteria met and verified:
+    - ✓ Create POST /api/archive/topics/:id/restore endpoint
+    - ✓ Set topic.isArchived = 0 and update updatedAt timestamp
+    - ✓ Also restore all ideas in that topic (set isArchived = 0)
+    - ✓ Create POST /api/archive/ideas/:id/restore endpoint
+    - ✓ Set idea.isArchived = 0 and update updatedAt timestamp
+    - ✓ Check if parent topic is archived; if so, return error with topic info
+    - ✓ Return restored item details on success
+    - ✓ Example: restoring topic with 5 archived ideas restores all 6 items
+    - ✓ Negative case: restoring idea with archived topic returns 400 error
+    - ✓ Error case: non-existent item returns 404
+    - ✓ Error handling: return 500 on database failures
+- **Learnings for future iterations:**
+  - Follow existing API patterns: validate, update, fetch, return formatted response
+  - Test server needs all endpoints to be added manually (not automatic from src/index.ts)
+  - Test isolation: restore data after modifying it in tests (re-archive after restore)
+  - Parent topic check uses LEFT JOIN to get topic.isArchived in single query
+  - Error responses include context (topic info) to help frontend display helpful messages
+  - Group idea updates by topicId for efficiency (single UPDATE instead of N+1)
+  - Updated timestamps use new Date().toISOString() for consistency
+  - bun run build catches TypeScript errors (acts as typecheck)
+  - lint and typecheck scripts not configured in package.json yet (covered by build/test)
+---
