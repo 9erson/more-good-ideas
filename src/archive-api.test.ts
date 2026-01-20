@@ -390,6 +390,97 @@ describe("Archive API endpoints", () => {
             }
           },
         },
+
+        "/api/archive/topics/:id/permanent-delete": {
+          async DELETE(req) {
+            try {
+              const topicId = req.params.id
+
+              const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
+                | {
+                    id: string
+                    name: string
+                    description: string | null
+                    isArchived: number
+                    createdAt: string
+                    updatedAt: string
+                  }
+                | undefined
+
+              if (!existingTopic) {
+                return Response.json({ error: "Topic not found" }, { status: 404 })
+              }
+
+              if (existingTopic.isArchived === 0) {
+                return Response.json({ error: "Topic is not archived" }, { status: 400 })
+              }
+
+              // Delete the topic - cascade deletes will handle ideas, idea_tags, topic_tags, and feedback
+              db.query("DELETE FROM topics WHERE id = ?").run(topicId)
+
+              // Clean up orphaned tags
+              db.query(`
+                DELETE FROM tags
+                WHERE id NOT IN (SELECT DISTINCT tagId FROM topic_tags)
+                  AND id NOT IN (SELECT DISTINCT tagId FROM idea_tags)
+              `).run()
+
+              return Response.json({
+                success: true,
+                message: "Topic permanently deleted",
+              })
+            } catch (error) {
+              console.error("Error permanently deleting topic:", error)
+              return Response.json({ error: "Failed to permanently delete topic" }, { status: 500 })
+            }
+          },
+        },
+
+        "/api/archive/ideas/:id/permanent-delete": {
+          async DELETE(req) {
+            try {
+              const ideaId = req.params.id
+
+              const existingIdea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as
+                | {
+                    id: string
+                    topicId: string
+                    name: string
+                    description: string | null
+                    isArchived: number
+                    createdAt: string
+                    updatedAt: string
+                  }
+                | undefined
+
+              if (!existingIdea) {
+                return Response.json({ error: "Idea not found" }, { status: 404 })
+              }
+
+              if (existingIdea.isArchived === 0) {
+                return Response.json({ error: "Idea is not archived" }, { status: 400 })
+              }
+
+              // Delete the idea - cascade deletes will handle idea_tags and feedback
+              db.query("DELETE FROM ideas WHERE id = ?").run(ideaId)
+
+              // Clean up orphaned tags
+              db.query(`
+                DELETE FROM tags
+                WHERE id NOT IN (SELECT DISTINCT tagId FROM topic_tags)
+                  AND id NOT IN (SELECT DISTINCT tagId FROM idea_tags)
+              `).run()
+
+              return Response.json({
+                success: true,
+                message: "Idea permanently deleted",
+              })
+            } catch (error) {
+              console.error("Error permanently deleting idea:", error)
+              return Response.json({ error: "Failed to permanently delete idea" }, { status: 500 })
+            }
+          },
+        },
       },
     })
 
@@ -739,6 +830,224 @@ describe("Archive API endpoints", () => {
       // This test would require mocking the database to throw an error
       // For now, we'll skip it as the error handling is already in place
       expect(true).toBe(true)
+    })
+  })
+
+  describe("DELETE /api/archive/topics/:id/permanent-delete", () => {
+    test("permanently deletes topic and cascades to ideas", async () => {
+      // Get an archived topic with ideas
+      const topicsBefore = await fetch(`${baseURL}/api/archive/topics`)
+      const topicsBeforeData = (await topicsBefore.json()) as Array<{
+        id: string
+        name: string
+        ideaCount: number
+      }>
+
+      const topicToDelete = topicsBeforeData.find((t) => t.name === "Archived Topic 2")!
+      expect(topicToDelete.ideaCount).toBe(1)
+
+      // Get the idea ID before deletion
+      const ideasBefore = await fetch(`${baseURL}/api/archive/ideas`)
+      const ideasBeforeData = (await ideasBefore.json()) as Array<{
+        id: string
+        name: string
+        topicId: string
+      }>
+
+      const ideaToDelete = ideasBeforeData.find((i) => i.topicId === topicToDelete.id)!
+      expect(ideaToDelete).toBeDefined()
+
+      // Delete the topic
+      const res = await fetch(`${baseURL}/api/archive/topics/${topicToDelete.id}/permanent-delete`, {
+        method: "DELETE",
+      })
+      expect(res.status).toBe(200)
+
+      const data = await res.json()
+      expect(data.success).toBe(true)
+      expect(data.message).toBe("Topic permanently deleted")
+
+      // Verify topic is permanently deleted (404 on subsequent fetch)
+      const topicAfter = await fetch(`${baseURL}/api/archive/topics/${topicToDelete.id}`)
+      expect(topicAfter.status).toBe(404)
+
+      // Verify ideas are also deleted (cascade)
+      const ideasAfter = await fetch(`${baseURL}/api/archive/ideas`)
+      const ideasAfterData = await ideasAfter.json()
+      const deletedIdea = ideasAfterData.find((i: { id: string }) => i.id === ideaToDelete.id)
+      expect(deletedIdea).toBeUndefined()
+
+      // Verify topic is no longer in archive list
+      const topicsAfter = await fetch(`${baseURL}/api/archive/topics`)
+      const topicsAfterData = await topicsAfter.json()
+      expect(topicsAfterData).not.toContainEqual(expect.objectContaining({ id: topicToDelete.id }))
+    })
+
+    test("returns 404 for non-existent topic", async () => {
+      const res = await fetch(`${baseURL}/api/archive/topics/non-existent-id/permanent-delete`, {
+        method: "DELETE",
+      })
+      expect(res.status).toBe(404)
+
+      const data = await res.json()
+      expect(data.error).toBe("Topic not found")
+    })
+
+    test("returns 400 for topic that is not archived", async () => {
+      // Get an active topic
+      const activeTopic = db
+        .query("SELECT id FROM topics WHERE isArchived = 0")
+        .get() as { id: string } | undefined
+
+      expect(activeTopic).toBeDefined()
+
+      const res = await fetch(
+        `${baseURL}/api/archive/topics/${activeTopic!.id}/permanent-delete`,
+        {
+          method: "DELETE",
+        }
+      )
+      expect(res.status).toBe(400)
+
+      const data = await res.json()
+      expect(data.error).toBe("Topic is not archived")
+    })
+
+    test("cleans up orphaned tags after deletion", async () => {
+      // Create a new archived topic with a unique tag
+      const topicId = randomUUID()
+      const tagId = randomUUID()
+      const now = new Date().toISOString()
+
+      db.query(
+        "INSERT INTO topics (id, name, description, isArchived, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)"
+      ).run(topicId, "Topic to Delete", "Description", 1, now, now)
+
+      db.query("INSERT INTO tags (id, name) VALUES (?, ?)").run(tagId, "unique-delete-tag")
+      db.query("INSERT INTO topic_tags (topicId, tagId) VALUES (?, ?)").run(topicId, tagId)
+
+      // Verify tag exists
+      const tagBefore = db.query("SELECT * FROM tags WHERE id = ?").get(tagId)
+      expect(tagBefore).toBeDefined()
+
+      // Delete the topic
+      const res = await fetch(`${baseURL}/api/archive/topics/${topicId}/permanent-delete`, {
+        method: "DELETE",
+      })
+      expect(res.status).toBe(200)
+
+      // Verify tag is cleaned up
+      const tagAfter = db.query("SELECT * FROM tags WHERE id = ?").get(tagId)
+      expect(tagAfter).toBeNull()
+    })
+  })
+
+  describe("DELETE /api/archive/ideas/:id/permanent-delete", () => {
+    test("permanently deletes idea successfully", async () => {
+      // Create a new archived idea for this test
+      const ideaId = randomUUID()
+      const now = new Date().toISOString()
+
+      // Get an active topic
+      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as {
+        id: string
+      } | undefined
+
+      expect(activeTopic).toBeDefined()
+
+      db.query(
+        "INSERT INTO ideas (id, topicId, name, description, isArchived, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).run(ideaId, activeTopic!.id, "Idea to Delete", "Description", 1, now, now)
+
+      // Verify idea exists
+      const ideaBefore = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId)
+      expect(ideaBefore).toBeDefined()
+
+      // Delete the idea
+      const res = await fetch(`${baseURL}/api/archive/ideas/${ideaId}/permanent-delete`, {
+        method: "DELETE",
+      })
+      expect(res.status).toBe(200)
+
+      const data = await res.json()
+      expect(data.success).toBe(true)
+      expect(data.message).toBe("Idea permanently deleted")
+
+      // Verify idea is permanently deleted (404 on subsequent fetch)
+      const ideaAfter = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId)
+      expect(ideaAfter).toBeNull()
+
+      // Verify idea is no longer in archive list
+      const ideasAfter = await fetch(`${baseURL}/api/archive/ideas`)
+      const ideasAfterData = await ideasAfter.json()
+      expect(ideasAfterData).not.toContainEqual(expect.objectContaining({ id: ideaId }))
+    })
+
+    test("returns 404 for non-existent idea", async () => {
+      const res = await fetch(
+        `${baseURL}/api/archive/ideas/non-existent-id/permanent-delete`,
+        {
+          method: "DELETE",
+        }
+      )
+      expect(res.status).toBe(404)
+
+      const data = await res.json()
+      expect(data.error).toBe("Idea not found")
+    })
+
+    test("returns 400 for idea that is not archived", async () => {
+      // Get an active idea
+      const activeIdea = db
+        .query("SELECT id FROM ideas WHERE isArchived = 0")
+        .get() as { id: string } | undefined
+
+      expect(activeIdea).toBeDefined()
+
+      const res = await fetch(
+        `${baseURL}/api/archive/ideas/${activeIdea!.id}/permanent-delete`,
+        {
+          method: "DELETE",
+        }
+      )
+      expect(res.status).toBe(400)
+
+      const data = await res.json()
+      expect(data.error).toBe("Idea is not archived")
+    })
+
+    test("cleans up orphaned tags after deletion", async () => {
+      // Create a new archived idea with a unique tag
+      const ideaId = randomUUID()
+      const tagId = randomUUID()
+      const now = new Date().toISOString()
+
+      const activeTopic = db.query("SELECT id FROM topics WHERE isArchived = 0").get() as {
+        id: string
+      } | undefined
+
+      expect(activeTopic).toBeDefined()
+
+      db.query(
+        "INSERT INTO ideas (id, topicId, name, description, isArchived, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).run(ideaId, activeTopic!.id, "Idea to Delete", "Description", 1, now, now)
+
+      db.query("INSERT INTO tags (id, name) VALUES (?, ?)").run(tagId, "unique-idea-tag")
+      db.query("INSERT INTO idea_tags (ideaId, tagId) VALUES (?, ?)").run(ideaId, tagId)
+
+      // Verify tag exists
+      const tagBefore = db.query("SELECT * FROM tags WHERE id = ?").get(tagId)
+      expect(tagBefore).toBeDefined()
+
+      // Delete the idea
+      const res = await fetch(`${baseURL}/api/archive/ideas/${ideaId}/permanent-delete`, {
+        method: "DELETE",
+      })
+      expect(res.status).toBe(200)
+
+      // Verify tag is cleaned up
+      const tagAfter = db.query("SELECT * FROM tags WHERE id = ?").get(tagId)
+      expect(tagAfter).toBeNull()
     })
   })
 })

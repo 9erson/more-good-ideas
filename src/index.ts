@@ -647,6 +647,97 @@ const server = serve({
       },
     },
 
+    "/api/archive/topics/:id/permanent-delete": {
+      async DELETE(req) {
+        try {
+          const topicId = req.params.id
+
+          const existingTopic = db.query("SELECT * FROM topics WHERE id = ?").get(topicId) as
+            | {
+                id: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
+
+          if (!existingTopic) {
+            return Response.json({ error: "Topic not found" }, { status: 404 })
+          }
+
+          if (existingTopic.isArchived === 0) {
+            return Response.json({ error: "Topic is not archived" }, { status: 400 })
+          }
+
+          // Delete the topic - cascade deletes will handle ideas, idea_tags, topic_tags, and feedback
+          db.query("DELETE FROM topics WHERE id = ?").run(topicId)
+
+          // Clean up orphaned tags
+          db.query(`
+            DELETE FROM tags
+            WHERE id NOT IN (SELECT DISTINCT tagId FROM topic_tags)
+              AND id NOT IN (SELECT DISTINCT tagId FROM idea_tags)
+          `).run()
+
+          return Response.json({
+            success: true,
+            message: "Topic permanently deleted",
+          })
+        } catch (error) {
+          console.error("Error permanently deleting topic:", error)
+          return Response.json({ error: "Failed to permanently delete topic" }, { status: 500 })
+        }
+      },
+    },
+
+    "/api/archive/ideas/:id/permanent-delete": {
+      async DELETE(req) {
+        try {
+          const ideaId = req.params.id
+
+          const existingIdea = db.query("SELECT * FROM ideas WHERE id = ?").get(ideaId) as
+            | {
+                id: string
+                topicId: string
+                name: string
+                description: string | null
+                isArchived: number
+                createdAt: string
+                updatedAt: string
+              }
+            | undefined
+
+          if (!existingIdea) {
+            return Response.json({ error: "Idea not found" }, { status: 404 })
+          }
+
+          if (existingIdea.isArchived === 0) {
+            return Response.json({ error: "Idea is not archived" }, { status: 400 })
+          }
+
+          // Delete the idea - cascade deletes will handle idea_tags and feedback
+          db.query("DELETE FROM ideas WHERE id = ?").run(ideaId)
+
+          // Clean up orphaned tags
+          db.query(`
+            DELETE FROM tags
+            WHERE id NOT IN (SELECT DISTINCT tagId FROM topic_tags)
+              AND id NOT IN (SELECT DISTINCT tagId FROM idea_tags)
+          `).run()
+
+          return Response.json({
+            success: true,
+            message: "Idea permanently deleted",
+          })
+        } catch (error) {
+          console.error("Error permanently deleting idea:", error)
+          return Response.json({ error: "Failed to permanently delete idea" }, { status: 500 })
+        }
+      },
+    },
+
     "/api/test/cleanup": {
       async POST() {
         if (process.env.NODE_ENV === "production") {
