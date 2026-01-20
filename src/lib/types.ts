@@ -23,3 +23,28 @@ export type Idea = {
   createdAt: string
   updatedAt: string
 }
+
+export type ArchivedTopic = {
+  id: string
+  name: string
+  description: string | null
+  isArchived: boolean
+  ideaCount: number
+  tags: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type ArchivedIdea = {
+  id: string
+  topicId: string
+  name: string
+  description: string | null
+  isArchived: boolean
+  topicName: string | null
+  tags: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type ArchiveItemType = "all" | "topics" | "ideas"
