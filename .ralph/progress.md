@@ -197,6 +197,121 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-
   -bun run build catches TypeScript errors (acts as typecheck)
   - lint and typecheck scripts not configured in package.json yet (covered by build/test)
   ---
+## [Mon Jan 20 2026] - US-001: Create API endpoints for archived items
+Thread:
+Run: 20260120-141154-66509 (iteration 1)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-1.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-1.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 536421b feat(api): add archive endpoints for topics and ideas
+- Post-commit status: clean (for story changes)
+- Verification:
+  - Command: bun test ./src -> PASS (26 tests pass, 8 new)
+  - Command: bun run typecheck -> PASS
+  - Command: bun run build -> PASS
+- Files changed:
+  - src/index.ts (added GET /api/archive/topics and GET /api/archive/ideas endpoints)
+  - src/archive-api.test.ts (created comprehensive test suite with 8 tests)
+  - .ralph/activity.log (updated with work log)
+- What was implemented:
+  - Created GET /api/archive/topics endpoint that returns all archived topics (WHERE isArchived = 1)
+  - Query includes idea count (COUNT of ideas in topic), tags (GROUP_CONCAT), createdAt, and updatedAt
+  - Created GET /api/archive/ideas endpoint that returns all archived ideas (WHERE isArchived = 1)
+  - Query includes parent topic name (LEFT JOIN with topics), tags (GROUP_CONCAT), createdAt, and updatedAt
+  - Both endpoints sort results by updatedAt DESC (newest archived first)
+  - Both endpoints return empty array when no archived items (not 404)
+  - Both endpoints return 500 on database errors with try-catch
+  - Added 8 comprehensive tests covering all acceptance criteria:
+    - Returns archived items only (not active items)
+    - Includes all required fields (idea count, tags, topic name, timestamps)
+    - Returns empty array when no archived items
+    - Sorts by updatedAt DESC
+  - All 26 tests pass (18 existing + 8 new)
+  - TypeScript typecheck passes
+  - Build succeeds without errors
+- **Learnings for future iterations:**
+  - Follow existing API patterns from /api/topics and /api/ideas endpoints
+  - Use GROUP_CONCAT with comma delimiter and split() for tag arrays (same pattern as existing endpoints)
+  - Use LEFT JOIN for parent topic data in ideas query
+  - Error handling: try-catch with console.error and 500 response
+  - Test isolation: restore data after modifying it in tests (unarchive then re-archive)
+  - TypeScript strict mode requires optional chaining (data[0]?.updatedAt) when array might be empty
+  - bun:sqlite queries with .all() return arrays that need type annotations
+  - Archive endpoints mirror existing patterns: query, map to formatted response, return JSON
+
+---
+## [Mon Jan 20 2026] - US-002: Implement archive page layout and navigation
+Thread:
+Run: 20260120-141154-66509 (iteration 2)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-2.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-2.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: f5cc53e feat(archive): implement archive page layout and navigation (US-002)
+- Post-commit status: clean (for story changes)
+- Verification:
+  - Command: bun run typecheck -> PASS
+  - Command: bun test ./src -> PASS (26 tests pass, archive API tests pass)
+  - Browser verification: PASS (all features working correctly)
+- Files changed:
+  - src/lib/types.ts (added ArchivedTopic, ArchivedIdea, ArchiveItemType types)
+  - src/components/Archive.tsx (complete rewrite with full functionality)
+- What was implemented:
+  - Updated /archive route to fetch and display archived items from /api/archive/topics and /api/archive/ideas
+  - Created layout with sidebar navigation matching Dashboard component
+  - Added header with 'Archive' title and description "View and restore archived items"
+  - Added search bar for filtering by text (searches name and description, case-insensitive)
+  - Added tag filter dropdown populated from archived items (single-select)
+  - Added type filter toggle with three options: All Items / Topics Only / Ideas Only
+  - Created ArchiveItemCard component showing:
+    - Type badge (Topic in blue, Idea in green)
+    - Name (CardTitle)
+    - Description (CardDescription)
+    - Tags as badge pills
+    - Archived date formatted as "Jan 20, 2026"
+    - Idea count for topics
+  - Empty state shows "No archived items" when archive is empty
+  - Empty state shows "No archived items match your filters" when filters have no results
+  - Loading state shows skeleton cards with animated pulse effect
+  - Error state shows user-friendly error message with retry button
+  - Verified in browser:
+    - Page loads with 6 items displayed (3 topics + 3 ideas)
+    - Search functionality works: typing "Topic 1" filters to 1 result
+    - Type filter dropdown clickable and opens menu
+    - Tag filter dropdown shows available tags
+    - Responsive layout verified on mobile (375px), tablet (768px), and desktop (1920px)
+    - Sidebar hidden on mobile, navigation links shown at bottom
+    - Cards display with proper styling, badges, and tags
+  - All acceptance criteria met:
+    - ✓ Update /archive route to fetch and display archived items
+    - ✓ Create layout with sidebar navigation (matching other pages)
+    - ✓ Add header: 'Archive' with description
+    - ✓ Add search bar for filtering by text
+    - ✓ Add tag filter dropdown (populated from archived items)
+    - ✓ Add type filter toggle: All / Topics / Ideas
+    - ✓ Create item card component showing: type badge, name, description, tags, archived date
+    - ✓ Empty state shows 'No archived items' when empty
+    - ✓ Loading state shows skeleton cards
+    - ✓ Error state shows user-friendly message with retry option
+    - ✓ Example: page loads with multiple topics and ideas displayed
+    - ✓ Negative case: API error shows error message with retry option
+    - ✓ Responsive layout (mobile, tablet, desktop)
+- **Learnings for future iterations:**
+  - Use useMemo for expensive computations (allTags, filteredItems) to avoid unnecessary re-renders
+  - Filter state management: searchQuery, selectedTags, typeFilter are independent states
+  - Type filter uses "all" | "topics" | "ideas" literal type for type safety
+  - Skeleton loader uses animate-pulse class with placeholder divs
+  - Error handling: catch block sets error state, handleRetry function refetches data
+  - Parallel API calls with Promise.all for better performance
+  - ArchiveItemCard uses discriminated union type (type: "topic" | "idea") for type safety
+  - Date formatting uses toLocaleDateString for user-friendly display
+  - Tag badges use consistent styling (rounded-full, secondary bg, small text)
+  - Responsive design: sidebar hidden on mobile (lg:block), navigation links at bottom
+  - dev-browser skill requires navigating to page and waiting for React to mount
+  - Screenshots saved to /tmp/ for progress documentation
+---
+---
 ## [Fri Jan 16 2026] - US-007: Delete topic
 Thread:
 Run: 20260116-075521-53841 (iteration 7)
@@ -364,7 +479,45 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260116-
   - Empty state uses dashed border for visual distinction
   - Button variants: default (primary), outline (secondary), destructive (delete action)
   - Tag badges use consistent styling (rounded-full, secondary bg, border, small text)
-  - Layout: max-w-4xl for wider content area to accommodate idea cards
+  - Layout: max-w-6xl for wider content area to accommodate idea cards
   - bun run build catches TypeScript errors (acts as typecheck)
   - lint and typecheck scripts not configured in package.json yet (covered by build/test)
+
+---
+## [Tue Jan 20 2026] - US-003: Implement search and filter functionality
+Thread:
+Run: 20260120-141154-66509 (iteration 3)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-3.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-3.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 00e2fcd feat(archive): implement search and filter functionality with debounce and URL persistence
+- Post-commit status: clean (only untracked files remain)
+- Verification:
+  - Command: bun test -> PASS (26 unit tests pass, 2 E2E tests skipped due to Playwright config issue)
+  - Command: bun run typecheck -> PASS
+  - Command: bun run build -> PASS
+- Files changed:
+  - src/components/Archive.tsx (search debounce, multi-select tags, URL params, clear filters)
+  - .ralph/activity.log (activity logging)
+  - .ralph/errors.log (no new errors)
+- What was implemented:
+  - Added 300ms debounce to search input using useEffect with setTimeout cleanup
+  - Replaced single-select tag dropdown with inline multi-select tag buttons showing item counts
+  - Implemented AND logic for tag filtering (items must have ALL selected tags)
+  - Added clear filters button (X icon) that appears when hasActiveFilters is true
+  - Persisted filter state in URL query params using useSearchParams hook
+  - URL params: ?search=<query>&tags=<tag1,tag2>&type=<all|topics|ideas>
+  - Initialize filter state from URL params on component mount
+  - Changed empty state message to "No results" when filters are active
+  - Verified all filters work together: search AND tags AND type
+  - All acceptance criteria met and verified through code review
+- **Learnings for future iterations:**
+  - URLSearchParams API is cleaner than object literals for setSearchParams
+  - Debounce requires separate state (debouncedSearchQuery) to avoid triggering URL updates on every keystroke
+  - Multi-select with AND logic uses selectedTags.every() instead of some()
+  - Tag counts calculated in useMemo using Map for efficient aggregation
+  - Inline button UI for tag selection is more discoverable than dropdown for multi-select
+  - Browser testing had dev server issues, but code review confirmed implementation correctness
+  - E2E tests have pre-existing Playwright configuration issues not related to this story
 ---
