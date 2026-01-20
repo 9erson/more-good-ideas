@@ -1,10 +1,12 @@
-import { useEffect, useState, useMemo } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useState, useMemo, useCallback, useRef } from "react"
+import { Link, useSearchParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { X } from "lucide-react"
 import type { ArchivedTopic, ArchivedIdea, ArchiveItemType } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 type ArchiveItem = (ArchivedTopic & { type: "topic" }) | (ArchivedIdea & { type: "idea" })
 
@@ -81,13 +83,56 @@ function SkeletonCard() {
 }
 
 export function Archive() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [topics, setTopics] = useState<ArchivedTopic[]>([])
   const [ideas, setIdeas] = useState<ArchivedIdea[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [typeFilter, setTypeFilter] = useState<ArchiveItemType>("all")
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Initialize state from URL params on mount
+  useEffect(() => {
+    const searchParam = searchParams.get("search")
+    const tagsParam = searchParams.get("tags")
+    const typeParam = searchParams.get("type")
+
+    if (searchParam) setSearchQuery(searchParam)
+    if (searchParam) setDebouncedSearchQuery(searchParam)
+    if (tagsParam) setSelectedTags(tagsParam.split(","))
+    if (typeParam && (typeParam === "topics" || typeParam === "ideas" || typeParam === "all")) {
+      setTypeFilter(typeParam as ArchiveItemType)
+    }
+  }, [])
+
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (debouncedSearchQuery) params.set("search", debouncedSearchQuery)
+    if (selectedTags.length > 0) params.set("tags", selectedTags.join(","))
+    if (typeFilter !== "all") params.set("type", typeFilter)
+    setSearchParams(params)
+  }, [debouncedSearchQuery, selectedTags, typeFilter, setSearchParams])
+
+  // Debounce search query
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300)
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [searchQuery])
 
   useEffect(() => {
     async function fetchArchivedItems() {
@@ -120,10 +165,12 @@ export function Archive() {
   }, [])
 
   const allTags = useMemo(() => {
-    const tagSet = new Set<string>()
-    topics.forEach((t) => t.tags.forEach((tag) => tagSet.add(tag)))
-    ideas.forEach((i) => i.tags.forEach((tag) => tagSet.add(tag)))
-    return Array.from(tagSet).sort()
+    const tagMap = new Map<string, number>()
+    topics.forEach((t) => t.tags.forEach((tag) => tagMap.set(tag, (tagMap.get(tag) || 0) + 1)))
+    ideas.forEach((i) => i.tags.forEach((tag) => tagMap.set(tag, (tagMap.get(tag) || 0) + 1)))
+    return Array.from(tagMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name))
   }, [topics, ideas])
 
   const filteredItems = useMemo(() => {
@@ -137,8 +184,8 @@ export function Archive() {
       items.push(...ideas.map((i) => ({ ...i, type: "idea" as const })))
     }
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+    if (debouncedSearchQuery) {
+      const query = debouncedSearchQuery.toLowerCase()
       items = items.filter(
         (item) =>
           item.name.toLowerCase().includes(query) ||
@@ -153,7 +200,7 @@ export function Archive() {
     }
 
     return items
-  }, [topics, ideas, searchQuery, selectedTags, typeFilter])
+  }, [topics, ideas, debouncedSearchQuery, selectedTags, typeFilter])
 
   const handleRetry = () => {
     setError(null)
@@ -169,6 +216,25 @@ export function Archive() {
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false))
   }
+
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery("")
+    setDebouncedSearchQuery("")
+    setSelectedTags([])
+    setTypeFilter("all")
+  }, [])
+
+  const hasActiveFilters = Boolean(
+    debouncedSearchQuery || selectedTags.length > 0 || typeFilter !== "all"
+  )
+
+  const toggleTag = useCallback((tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
+        : [...prev, tag]
+    )
+  }, [])
 
   return (
     <div className="flex min-h-screen">
@@ -207,57 +273,84 @@ export function Archive() {
           ) : filteredItems.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">
-                {searchQuery || selectedTags.length > 0 || typeFilter !== "all"
-                  ? "No archived items match your filters"
+                {debouncedSearchQuery || selectedTags.length > 0 || typeFilter !== "all"
+                  ? "No results"
                   : "No archived items"}
               </p>
             </div>
           ) : (
             <>
-              <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <Input
-                    type="text"
-                    placeholder="Search by name or description..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
+              <div className="mb-6 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <Input
+                      type="text"
+                      placeholder="Search by name or description..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
 
-                <div className="flex gap-2">
-                  <Select
-                    value={typeFilter}
-                    onValueChange={(value) => setTypeFilter(value as ArchiveItemType)}
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Items</SelectItem>
-                      <SelectItem value="topics">Topics Only</SelectItem>
-                      <SelectItem value="ideas">Ideas Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {allTags.length > 0 && (
+                  <div className="flex gap-2">
                     <Select
-                      value={selectedTags[0] || ""}
-                      onValueChange={(value) => setSelectedTags(value ? [value] : [])}
+                      value={typeFilter}
+                      onValueChange={(value) => setTypeFilter(value as ArchiveItemType)}
                     >
                       <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Filter by tag" />
+                        <SelectValue placeholder="Type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {allTags.map((tag) => (
-                          <SelectItem key={tag} value={tag}>
-                            {tag}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="all">All Items</SelectItem>
+                        <SelectItem value="topics">Topics Only</SelectItem>
+                        <SelectItem value="ideas">Ideas Only</SelectItem>
                       </SelectContent>
                     </Select>
-                  )}
+
+                    {hasActiveFilters && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleClearFilters}
+                        title="Clear filters"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
+
+                {allTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-sm text-muted-foreground">Filter by tags:</span>
+                    {allTags.map(({ name, count }) => {
+                      const isSelected = selectedTags.includes(name)
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => toggleTag(name)}
+                          className={cn(
+                            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors hover:bg-secondary/50",
+                            isSelected
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-secondary/20 text-secondary-foreground"
+                          )}
+                        >
+                          {name}
+                          <span className={cn(
+                            "text-xs",
+                            isSelected ? "text-primary/70" : "text-muted-foreground"
+                          )}>
+                            ({count})
+                          </span>
+                          {isSelected && (
+                            <X className="h-3 w-3" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
