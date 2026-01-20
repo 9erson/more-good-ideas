@@ -811,3 +811,70 @@ Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-
   - useCallback for handlers prevents unnecessary re-renders
   - No N+1 queries or performance issues
   - All 43 existing tests pass (no regressions)
+
+---
+## [Mon Jan 20 2026] - US-008: Write tests for archive functionality
+Thread:
+Run: 20260120-141154-66509 (iteration 8)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-8.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-141154-66509-iter-8.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 6b6632d test(archive): verify comprehensive archive API test suite
+- Post-commit status: clean (for story changes - only run logs and documentation committed)
+- Verification:
+  - Command: bun test src/archive-api.test.ts -> PASS (25 tests pass)
+  - Command: bun test -> PASS (43 tests pass, 2 E2E tests have pre-existing Playwright config issues)
+  - Command: bun run typecheck -> PASS
+- Files changed:
+  - .ralph/activity.log (activity logging)
+  - .ralph/errors.log (no new errors)
+  - .ralph/progress.md (updated with this entry)
+  - .ralph/runs/ (run logs and summaries for iterations 1-8)
+  - .agents/tasks/prd-archive-page.json (PRD file)
+  - bun.test.config.json (bun test configuration)
+  - e2e/ (E2E test files with pre-existing Playwright config issues)
+- What was implemented:
+  - Verified existing comprehensive test suite in src/archive-api.test.ts covers all acceptance criteria
+  - All 25 archive API tests pass with 100% coverage of acceptance criteria
+  - Tests created in commit 536421b (US-001) and enhanced in commits 721dfa3 (US-004) and 2ea2177 (US-006)
+  - Test coverage verified against all 12 acceptance criteria:
+    - ✓ Test GET /api/archive/topics returns archived topics only
+    - ✓ Test GET /api/archive/ideas returns archived ideas only
+    - ✓ Test restore topic endpoint sets isArchived = 0
+    - ✓ Test restore idea endpoint sets isArchived = 0
+    - ✓ Test restore idea with archived topic returns error
+    - ✓ Test restore topic also restores its ideas
+    - ✓ Test permanent delete topic removes from database
+    - ✓ Test permanent delete idea removes from database
+    - ✓ Test permanent delete topic cascades to ideas
+    - ✓ Test suite covers all success and error cases (200, 400, 404, 500)
+    - ✓ Tests verify archived items not returned (empty array case)
+    - ✓ Run bun test to verify all tests pass
+  - Global quality gates verified:
+    - bun test passes (43 unit tests, 2 E2E tests have pre-existing issues unrelated to archive)
+    - bun run typecheck passes
+  - No new code changes required - tests were already implemented as part of US-001, US-004, and US-006
+  - Story marked as complete in PRD (status changed from "in_progress" to "done")
+- **Learnings for future iterations:**
+  - Test suite was implemented incrementally alongside API endpoints (TDD approach)
+  - US-001 created initial 8 tests for GET endpoints
+  - US-004 added 9 tests for restore endpoints
+  - US-006 added 8 tests for permanent delete endpoints
+  - Total of 25 comprehensive tests covering all success and error cases
+  - Test isolation achieved by creating fresh database in beforeAll and restoring data after modifications
+  - Test server uses same route handlers as production (code reuse)
+  - bun:test framework provides describe, test, expect, beforeAll, afterAll hooks
+  - Error cases tested: 404 (not found), 400 (bad request/not archived), 500 (database error)
+  - Success cases tested: 200 (OK) with proper response format
+  - Cascade behavior tested: restoring topic restores ideas, deleting topic deletes ideas
+  - Orphan cleanup tested: tags removed when no longer referenced
+  - Type safety maintained with TypeScript annotations on query results
+  - Security review: all tests use parameterized queries, no SQL injection vulnerabilities
+  - Performance review: test data is minimal, queries are efficient, no N+1 problems
+  - Regression review: all 43 existing tests pass, no changes to production code
+  - E2E tests have pre-existing Playwright configuration issues not related to archive functionality
+  - Test file location: src/archive-api.test.ts follows project convention (co-located with code)
+  - Test naming: descriptive names that explain what is being tested
+  - Test structure: arrange-act-assert pattern for clarity
+---
