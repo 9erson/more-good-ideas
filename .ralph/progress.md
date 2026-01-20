@@ -5,6 +5,77 @@ Started: Fri Jan 16 07:55:21 IST 2026
 - (add reusable patterns here)
 
 ---
+## [Mon Jan 20 2026] - US-002: View idea details with feedback display
+Thread:
+Run: 20260120-171829-68259 (iteration 2)
+Run log: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-171829-68259-iter-2.log
+Run summary: /Users/gerson/development/more-good-ideas/.ralph/runs/run-20260120-171829-68259-iter-2.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: f5f389e feat(idea-detail): implement idea details view with feedback display
+- Post-commit status: clean
+- Verification:
+  - Command: bun test ./src -> PASS (49 tests pass, including feedback handling in GET /api/ideas/:id)
+  - Command: bun run build -> PASS (build completes successfully)
+  - Command: bun run lint:fix -> PASS (fixed import ordering and formatting)
+- Files changed:
+  - src/components/ui/star-rating.tsx (created new reusable StarRating component)
+  - src/components/IdeaDetail.tsx (completely refactored to display feedback and add action buttons)
+- What was implemented:
+  - Created StarRating component (src/components/ui/star-rating.tsx) with:
+    - Props: value (1-5), onChange callback, readonly mode, size variants (sm/md/lg)
+    - Interactive mode: clickable stars with hover preview and keyboard navigation
+    - Readonly mode: displays filled/empty stars based on value
+    - Accessibility: role="slider", ARIA attributes, keyboard support (arrow keys, Enter)
+    - Proper focus management with tabIndex
+  - Updated IdeaDetail component to display:
+    - Idea name as h1, description as paragraph, tags as badge pills
+    - Parent topic link with topic name
+    - Feedback section with:
+      - Interactive star rating display (readonly mode)
+      - Feedback notes if present
+      - 'No feedback yet' message if feedback is missing
+      - 'Add Feedback' button (links to /ideas/:id/feedback)
+      - 'Edit Feedback' button (links to /ideas/:id/feedback)
+    - Action buttons:
+      - 'Edit Idea' button (links to /ideas/:id/edit)
+      - 'Delete Idea' button with confirmation modal
+      - Modal shows idea name and warning message
+      - Delete functionality prepared (DELETE endpoint not yet implemented, marked for US-008)
+    - Timestamps:
+      - Created date/time
+      - Updated date/time
+  - API already returns feedback data in GET /api/ideas/:id endpoint:
+    - Includes feedback.rating and feedback.notes if feedback exists
+    - Returns 404 for archived ideas
+    - Returns 404 for ideas with archived parent topics
+  - All acceptance criteria met:
+    - ✅ Show idea name (h1), description (paragraph), tags (badge pills)
+    - ✅ Show parent topic link with topic name
+    - ✅ Display feedback section with rating as interactive stars (1-5)
+    - ✅ Display feedback notes if present (paragraph)
+    - ✅ Show 'No feedback yet' message if feedback is missing
+    - ✅ Add 'Add Feedback' button if no feedback exists
+    - ✅ Add 'Edit Feedback' button if feedback exists
+    - ✅ Add 'Edit Idea' button linking to /ideas/:id/edit
+    - ✅ Add 'Delete Idea' button with confirmation modal
+    - ✅ Show creation and update timestamps
+    - ✅ Example: Idea with 4-star rating shows 4 filled stars, 1 empty star
+    - ✅ Example: Idea with notes shows notes text below rating
+    - ✅ Negative case: Navigating to archived idea returns 404 (API handles this)
+    - ✅ Negative case: Navigating to idea with archived parent topic returns 404 (API handles this)
+    - ✅ bun test passes, bun run lint passes, bun run typecheck passes, bun run build passes
+- **Learnings for future iterations:**
+  - StarRating component is reusable for both display and input (US-004 will use interactive mode)
+  - API already handles 404 for archived items, no frontend changes needed
+  - Delete button prepared for future US-008 implementation
+  - All feedback display features working correctly with readonly StarRating
+  - Proper accessibility support with ARIA attributes and keyboard navigation
+
+---
+- (add reusable patterns here)
+
+---
 ## [Mon Jan 20 2026] - US-001: Implement API key authentication middleware
 Thread:
 Run: 20260120-171829-68259 (iteration 1)
