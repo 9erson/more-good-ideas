@@ -21,13 +21,17 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 import * as React from "react"
-import { X, RotateCcw } from "lucide-react"
+import { X, RotateCcw, Trash2, AlertTriangle } from "lucide-react"
 import type { ArchivedTopic, ArchivedIdea, ArchiveItemType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 type ArchiveItem = (ArchivedTopic & { type: "topic" }) | (ArchivedIdea & { type: "idea" })
 
-function ArchiveItemCard({ item, onRestoreClick }: { item: ArchiveItem; onRestoreClick: (item: ArchiveItem) => void }) {
+function ArchiveItemCard({ item, onRestoreClick, onDeleteClick }: { 
+  item: ArchiveItem
+  onRestoreClick: (item: ArchiveItem) => void
+  onDeleteClick: (item: ArchiveItem) => void 
+}) {
   const formattedDate = new Date(item.updatedAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -76,14 +80,24 @@ function ArchiveItemCard({ item, onRestoreClick }: { item: ArchiveItem; onRestor
             <>Archived {formattedDate}</>
           )}
         </p>
-        <Button
-          onClick={() => onRestoreClick(item)}
-          variant="default"
-          className="w-full"
-        >
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Restore
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => onRestoreClick(item)}
+            variant="default"
+            className="flex-1"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Restore
+          </Button>
+          <Button
+            onClick={() => onDeleteClick(item)}
+            variant="destructive"
+            className="flex-1"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
@@ -131,6 +145,14 @@ export function Archive() {
   const [itemToRestore, setItemToRestore] = useState<ArchiveItem | null>(null)
   const [isRestoring, setIsRestoring] = useState(false)
   const [restoreError, setRestoreError] = useState<string | null>(null)
+  
+  // Delete state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<ArchiveItem | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [confirmText, setConfirmText] = useState("")
+  
   const [toasts, setToasts] = useState<ToastData[]>([])
 
   // Initialize state from URL params on mount
@@ -349,6 +371,68 @@ export function Archive() {
     setRestoreError(null)
   }, [])
 
+  const handleDeleteClick = useCallback((item: ArchiveItem) => {
+    setItemToDelete(item)
+    setDeleteDialogOpen(true)
+    setDeleteError(null)
+    setConfirmText("")
+  }, [])
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!itemToDelete || confirmText !== itemToDelete.name) return
+
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    try {
+      const endpoint =
+        itemToDelete.type === "topic"
+          ? `/api/archive/topics/${itemToDelete.id}/permanent-delete`
+          : `/api/archive/ideas/${itemToDelete.id}/permanent-delete`
+
+      const response = await fetch(endpoint, { method: "DELETE" })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Failed to delete item" }))
+        setDeleteError(errorData.error || "Failed to delete item")
+        setIsDeleting(false)
+        return
+      }
+
+      // Remove from local state
+      if (itemToDelete.type === "topic") {
+        setTopics((prev) => prev.filter((t) => t.id !== itemToDelete.id))
+      } else {
+        setIdeas((prev) => prev.filter((i) => i.id !== itemToDelete.id))
+      }
+
+      // Show success toast
+      addToast(
+        "Item permanently deleted",
+        itemToDelete.type === "topic"
+          ? `Topic "${itemToDelete.name}" has been permanently deleted.`
+          : `Idea "${itemToDelete.name}" has been permanently deleted.`,
+        "default"
+      )
+
+      // Close dialog
+      setDeleteDialogOpen(false)
+      setItemToDelete(null)
+      setConfirmText("")
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setIsDeleting(false)
+    }
+  }, [itemToDelete, confirmText, addToast])
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteDialogOpen(false)
+    setItemToDelete(null)
+    setDeleteError(null)
+    setConfirmText("")
+  }, [])
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-64 border-r border-border bg-muted/40 p-6 hidden lg:block">
@@ -472,6 +556,7 @@ export function Archive() {
                     key={`${item.type}-${item.id}`} 
                     item={item} 
                     onRestoreClick={handleRestoreClick}
+                    onDeleteClick={handleDeleteClick}
                   />
                 ))}
               </div>
@@ -561,6 +646,100 @@ export function Archive() {
               disabled={isRestoring}
             >
               {isRestoring ? "Restoring..." : "Restore"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Permanently Delete {itemToDelete?.type === "topic" ? "Topic" : "Idea"}
+            </DialogTitle>
+            <DialogDescription>
+              {itemToDelete?.type === "topic" && (
+                <>
+                  Are you sure you want to permanently delete the topic "{itemToDelete?.name}"? This action cannot be undone and will also delete all {itemToDelete?.ideaCount || 0}{" "}
+                  {(itemToDelete as ArchivedTopic)?.ideaCount === 1 ? "idea" : "ideas"} within this topic.
+                </>
+              )}
+              {itemToDelete?.type === "idea" && (
+                <>Are you sure you want to permanently delete the idea "{itemToDelete?.name}"? This action cannot be undone.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {itemToDelete && (
+            <div className="py-4">
+              <div className="rounded-lg border border-border bg-secondary/20 p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={
+                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold " +
+                      (itemToDelete.type === "topic"
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400")
+                    }
+                  >
+                    {itemToDelete.type === "topic" ? "Topic" : "Idea"}
+                  </span>
+                </div>
+                <h4 className="font-semibold text-sm mb-1">{itemToDelete.name}</h4>
+                {itemToDelete.description && (
+                  <p className="text-sm text-muted-foreground mb-2">{itemToDelete.description}</p>
+                )}
+                {itemToDelete.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {itemToDelete.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center rounded-full border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
+                <label className="block text-sm font-medium text-destructive mb-2">
+                  Type <strong>{itemToDelete.name}</strong> to confirm deletion:
+                </label>
+                <Input
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder={`Type "${itemToDelete.name}" to confirm`}
+                  className="bg-background"
+                />
+              </div>
+            </div>
+          )}
+
+          {deleteError && (
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
+              <p className="text-sm text-destructive">{deleteError}</p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleDeleteCancel}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting || confirmText !== itemToDelete?.name}
+            >
+              {isDeleting ? "Deleting..." : "Delete Forever"}
             </Button>
           </DialogFooter>
         </DialogContent>
