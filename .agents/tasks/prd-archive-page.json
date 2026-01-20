@@ -1,0 +1,343 @@
+{
+  "version": 1,
+  "project": "Archive Page Implementation",
+  "overview": "Implement the archive page at /archive to display both archived topics and archived ideas with search, filter, restore, and permanent delete capabilities.",
+  "goals": [
+    "Display archived topics and ideas in a searchable, filterable list",
+    "Enable users to restore archived items back to active state",
+    "Enable users to permanently delete archived items with confirmation",
+    "Provide clear visual distinction between archived topics and ideas"
+  ],
+  "nonGoals": [
+    "Bulk restore or bulk delete operations (only single item actions)",
+    "Archive analytics or statistics",
+    "Auto-archiving based on time or activity",
+    "Archive categories or folders"
+  ],
+  "successMetrics": [
+    "Users can find archived items in under 3 seconds using search",
+    "Restoring an item requires fewer than 3 clicks",
+    "Page loads within 1 second with up to 100 archived items"
+  ],
+  "openQuestions": [],
+  "stack": {
+    "framework": "React 19 with Bun",
+    "hosting": "Static file hosting",
+    "database": "SQLite (bun:sqlite)",
+    "auth": "None (single-user application)"
+  },
+  "routes": [
+    {
+      "path": "/archive",
+      "name": "Archive",
+      "purpose": "View, search, filter, restore, and permanently delete archived topics and ideas"
+    },
+    {
+      "path": "/api/archive/topics",
+      "name": "Archived Topics API",
+      "purpose": "Fetch all archived topics with their idea counts and tags"
+    },
+    {
+      "path": "/api/archive/ideas",
+      "name": "Archived Ideas API",
+      "purpose": "Fetch all archived ideas with parent topic info and tags"
+    },
+    {
+      "path": "/api/archive/topics/:id/restore",
+      "name": "Restore Topic API",
+      "purpose": "Restore an archived topic and its ideas"
+    },
+    {
+      "path": "/api/archive/ideas/:id/restore",
+      "name": "Restore Idea API",
+      "purpose": "Restore an archived idea"
+    },
+    {
+      "path": "/api/archive/topics/:id/permanent-delete",
+      "name": "Delete Topic API",
+      "purpose": "Permanently delete an archived topic"
+    },
+    {
+      "path": "/api/archive/ideas/:id/permanent-delete",
+      "name": "Delete Idea API",
+      "purpose": "Permanently delete an archived idea"
+    }
+  ],
+  "uiNotes": [
+    "Layout: Sidebar navigation (same as other pages), main content area with archive items",
+    "Search bar: Filter archived items by name or description",
+    "Tag filter: Dropdown showing all tags on archived items, multi-select with AND logic",
+    "Type filter: Toggle between 'All', 'Topics Only', 'Ideas Only'",
+    "Item cards: Show type badge (Topic/Idea), name, description, tags, archived date",
+    "Action buttons: 'Restore' (primary), 'Permanently Delete' (danger)",
+    "Visual distinction: Topics have different card style or icon than ideas",
+    "Empty state: 'No archived items' message when archive is empty",
+    "Confirmation modals: Separate modals for restore and permanent delete with item details",
+    "Loading states: Skeleton loaders while fetching data",
+    "Error states: User-friendly messages for API failures"
+  ],
+  "dataModel": [
+    {
+      "entity": "Topic",
+      "fields": [
+        "id (primary key)",
+        "name (text)",
+        "description (text)",
+        "isArchived (boolean, true for archived items)",
+        "createdAt (timestamp)",
+        "updatedAt (timestamp)"
+      ]
+    },
+    {
+      "entity": "Idea",
+      "fields": [
+        "id (primary key)",
+        "topicId (foreign key)",
+        "name (text)",
+        "description (text)",
+        "isArchived (boolean, true for archived items)",
+        "createdAt (timestamp)",
+        "updatedAt (timestamp)"
+      ]
+    },
+    {
+      "entity": "Tag",
+      "fields": [
+        "id (primary key)",
+        "name (text)"
+      ]
+    },
+    {
+      "entity": "TopicTag (join table)",
+      "fields": [
+        "topicId (foreign key)",
+        "tagId (foreign key)"
+      ]
+    },
+    {
+      "entity": "IdeaTag (join table)",
+      "fields": [
+        "ideaId (foreign key)",
+        "tagId (foreign key)"
+      ]
+    }
+  ],
+  "importFormat": {
+    "description": "Not applicable for this feature",
+    "example": {}
+  },
+  "rules": [
+    "Archived topics show idea count (including archived ideas within that topic)",
+    "Restoring a topic also restores all archived ideas within that topic",
+    "Restoring an idea checks if parent topic is archived; if so, prompt user to restore both",
+    "Permanent delete cannot be undone",
+    "Permanent delete of topic cascades to all ideas (hard delete from database)",
+    "Search filters both name and description fields (case-insensitive)",
+    "Tag filter uses AND logic (show items matching ALL selected tags)",
+    "Items sorted by archived date (newest first)"
+  ],
+  "qualityGates": [
+    "bun test",
+    "bun run typecheck"
+  ],
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "Create API endpoints for archived items",
+      "status": "done",
+      "dependsOn": [],
+      "description": "As a developer, I want API endpoints to fetch archived topics and ideas so that the frontend can display them.",
+      "acceptanceCriteria": [
+        "Create GET /api/archive/topics endpoint",
+        "Query returns topics WHERE isArchived = 1",
+        "Include idea count, tags, createdAt, updatedAt for each topic",
+        "Create GET /api/archive/ideas endpoint",
+        "Query returns ideas WHERE isArchived = 1",
+        "Include parent topic name, tags, createdAt, updatedAt for each idea",
+        "Sort results by updatedAt DESC (newest archived first)",
+        "Example: /api/archive/topics returns array of 3 archived topics",
+        "Negative case: empty archive returns empty array (not 404)",
+        "Error handling: return 500 on database errors"
+      ],
+      "startedAt": "2026-01-20T08:41:54.213033+00:00",
+      "completedAt": "2026-01-20T08:49:03.866981+00:00",
+      "updatedAt": "2026-01-20T08:49:03.866825+00:00"
+    },
+    {
+      "id": "US-002",
+      "title": "Implement archive page layout and navigation",
+      "status": "done",
+      "dependsOn": [
+        "US-001"
+      ],
+      "description": "As a user, I want to see a clean archive page with navigation so that I can browse archived items.",
+      "acceptanceCriteria": [
+        "Update /archive route to fetch and display archived items",
+        "Create layout with sidebar navigation (matching other pages)",
+        "Add header: 'Archive' with description",
+        "Add search bar for filtering by text",
+        "Add tag filter dropdown (populated from archived items)",
+        "Add type filter toggle: All / Topics / Ideas",
+        "Create item card component showing: type badge, name, description, tags, archived date",
+        "Empty state shows 'No archived items' when empty",
+        "Loading state shows skeleton cards",
+        "Error state shows user-friendly message",
+        "Example: page loads with 5 topics and 10 ideas displayed",
+        "Negative case: API error shows error message with retry option",
+        "Responsive layout (mobile, tablet, desktop)"
+      ],
+      "startedAt": "2026-01-20T08:49:05.927726+00:00",
+      "completedAt": "2026-01-20T09:02:43.820864+00:00",
+      "updatedAt": "2026-01-20T09:02:43.820642+00:00"
+    },
+    {
+      "id": "US-003",
+      "title": "Implement search and filter functionality",
+      "status": "done",
+      "dependsOn": [
+        "US-002"
+      ],
+      "description": "As a user, I want to search and filter archived items so that I can quickly find specific content.",
+      "acceptanceCriteria": [
+        "Search input filters items by name and description (debounced 300ms)",
+        "Tag filter dropdown shows all tags used on archived items with counts",
+        "Tag filter supports multi-select with AND logic",
+        "Type filter toggle: All (default), Topics Only, Ideas Only",
+        "Filters combine: search AND tags AND type",
+        "Clear filters button resets all filters",
+        "Filter state persists in URL query params",
+        "Example: searching 'startup' returns only matching items",
+        "Negative case: no matching items shows 'No results' message",
+        "Empty filters show all archived items"
+      ],
+      "startedAt": "2026-01-20T09:02:45.888683+00:00",
+      "completedAt": "2026-01-20T09:11:59.408504+00:00",
+      "updatedAt": "2026-01-20T09:11:59.408192+00:00"
+    },
+    {
+      "id": "US-004",
+      "title": "Create restore API endpoints",
+      "status": "done",
+      "dependsOn": [],
+      "description": "As a developer, I want API endpoints to restore archived items so that users can recover deleted content.",
+      "acceptanceCriteria": [
+        "Create POST /api/archive/topics/:id/restore endpoint",
+        "Set topic.isArchived = 0 and update updatedAt timestamp",
+        "Also restore all ideas in that topic (set isArchived = 0)",
+        "Create POST /api/archive/ideas/:id/restore endpoint",
+        "Set idea.isArchived = 0 and update updatedAt timestamp",
+        "Check if parent topic is archived; if so, return error with topic info",
+        "Return restored item details on success",
+        "Example: restoring topic with 5 archived ideas restores all 6 items",
+        "Negative case: restoring idea with archived topic returns 400 error",
+        "Error case: non-existent item returns 404",
+        "Error handling: return 500 on database failures"
+      ],
+      "startedAt": "2026-01-20T09:12:01.541490+00:00",
+      "completedAt": "2026-01-20T09:20:32.948625+00:00",
+      "updatedAt": "2026-01-20T09:20:32.948383+00:00"
+    },
+    {
+      "id": "US-005",
+      "title": "Implement restore functionality with confirmation",
+      "status": "done",
+      "dependsOn": [
+        "US-004",
+        "US-002"
+      ],
+      "description": "As a user, I want to restore archived items so that I can recover deleted content.",
+      "acceptanceCriteria": [
+        "Add 'Restore' button to each item card",
+        "Clicking restore shows confirmation modal with item details",
+        "Confirmation modal shows: item type, name, description, tags",
+        "On confirm: call restore API and update UI",
+        "Show success toast notification on successful restore",
+        "Remove restored item from archive list",
+        "If restoring idea with archived topic: show special confirmation explaining both will be restored",
+        "Example: restore button shows modal, confirming removes item from list",
+        "Negative case: API error shows error message with retry option",
+        "Modal has 'Cancel' and 'Restore' buttons"
+      ],
+      "startedAt": "2026-01-20T09:20:35.098069+00:00",
+      "completedAt": "2026-01-20T09:36:05.225304+00:00",
+      "updatedAt": "2026-01-20T09:36:05.224879+00:00"
+    },
+    {
+      "id": "US-006",
+      "title": "Create permanent delete API endpoints",
+      "status": "done",
+      "dependsOn": [],
+      "description": "As a developer, I want API endpoints to permanently delete archived items so that users can remove unwanted content.",
+      "acceptanceCriteria": [
+        "Create DELETE /api/archive/topics/:id/permanent-delete endpoint",
+        "Hard delete topic row from database (DELETE FROM topics WHERE id = ?)",
+        "Cascade deletes all ideas, tags, and feedback for that topic",
+        "Create DELETE /api/archive/ideas/:id/permanent-delete endpoint",
+        "Hard delete idea row from database (DELETE FROM ideas WHERE id = ?)",
+        "Cascade deletes idea tags and feedback for that idea",
+        "Return success message on deletion",
+        "Example: deleting topic permanently removes it and all associated data",
+        "Negative case: non-existent item returns 404",
+        "Error handling: return 500 on database failures",
+        "Verification: deleted items cannot be retrieved (404 on subsequent fetch)"
+      ],
+      "startedAt": "2026-01-20T09:36:07.486016+00:00",
+      "completedAt": "2026-01-20T09:47:19.462817+00:00",
+      "updatedAt": "2026-01-20T09:47:19.462574+00:00"
+    },
+    {
+      "id": "US-007",
+      "title": "Implement permanent delete with confirmation",
+      "status": "done",
+      "dependsOn": [
+        "US-006",
+        "US-002"
+      ],
+      "description": "As a user, I want to permanently delete archived items so that I can remove content I no longer need.",
+      "acceptanceCriteria": [
+        "Add 'Permanently Delete' button (danger style) to each item card",
+        "Clicking delete shows confirmation modal with warning message",
+        "Confirmation modal shows: item type, name, warning that this cannot be undone",
+        "For topics: show warning that all ideas in topic will also be deleted",
+        "User must type item name to confirm deletion (safety measure)",
+        "On confirm: call permanent delete API and update UI",
+        "Show success toast notification on successful deletion",
+        "Remove deleted item from archive list",
+        "Example: delete button shows modal, typing name and confirming removes item",
+        "Negative case: API error shows error message with retry option",
+        "Modal has 'Cancel' and 'Delete Forever' buttons (red danger style)"
+      ],
+      "startedAt": "2026-01-20T09:47:21.587728+00:00",
+      "completedAt": "2026-01-20T10:00:28.740045+00:00",
+      "updatedAt": "2026-01-20T10:00:28.739460+00:00"
+    },
+    {
+      "id": "US-008",
+      "title": "Write tests for archive functionality",
+      "status": "in_progress",
+      "dependsOn": [
+        "US-001",
+        "US-004",
+        "US-006"
+      ],
+      "description": "As a developer, I want tests for archive endpoints so that I can ensure functionality works correctly.",
+      "acceptanceCriteria": [
+        "Test GET /api/archive/topics returns archived topics only",
+        "Test GET /api/archive/ideas returns archived ideas only",
+        "Test restore topic endpoint sets isArchived = 0",
+        "Test restore idea endpoint sets isArchived = 0",
+        "Test restore idea with archived topic returns error",
+        "Test restore topic also restores its ideas",
+        "Test permanent delete topic removes from database",
+        "Test permanent delete idea removes from database",
+        "Test permanent delete topic cascades to ideas",
+        "Example: test suite covers all success and error cases",
+        "Negative case: test verifies archived items not returned",
+        "Run bun test to verify all tests pass"
+      ],
+      "startedAt": "2026-01-20T10:00:30.921314+00:00",
+      "completedAt": null,
+      "updatedAt": "2026-01-20T10:00:30.921531+00:00"
+    }
+  ]
+}

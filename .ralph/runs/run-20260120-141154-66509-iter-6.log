@@ -1,0 +1,38 @@
+Perfect! Now let me provide a summary of what was completed:
+
+## Summary
+
+I've successfully completed US-006: Create permanent delete API endpoints. Here's what was implemented:
+
+### API Endpoints Created
+1. **DELETE /api/archive/topics/:id/permanent-delete** - Permanently deletes archived topics
+2. **DELETE /api/archive/ideas/:id/permanent-delete** - Permanently deletes archived ideas
+
+### Key Features
+- **Hard deletes**: Uses SQL DELETE to permanently remove rows from the database
+- **Cascade deletes**: Database foreign key constraints automatically delete related data (ideas, tags, feedback)
+- **Safety checks**: Only allows deletion of archived items (isArchived = 1), preventing accidental deletion of active content
+- **Orphaned tag cleanup**: Automatically removes tags that are no longer referenced by any topic or idea
+- **Comprehensive error handling**: Returns 404 for non-existent items, 400 for non-archived items, and 500 for database errors
+
+### Testing
+- Added 8 comprehensive tests covering all acceptance criteria
+- All 43 unit tests pass (no regressions)
+- Tests verify cascade behavior, orphaned tag cleanup, and error cases
+- Verified that deleted items cannot be retrieved (404 on subsequent fetch)
+
+### Quality Gates
+- ✅ bun test (43 tests pass)
+- ✅ bun run typecheck (no errors)
+- ✅ bun run build (successful compilation)
+
+### Security & Performance
+- Input validation via params checking
+- SQL injection prevention through parameterized queries
+- Minimal database queries (DELETE + cleanup)
+- Efficient cascade deletes via database constraints
+- No N+1 query problems
+
+The implementation follows all existing code patterns in the project and is production-ready.
+
+<promise>COMPLETE</promise>
