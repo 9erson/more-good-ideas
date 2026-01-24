@@ -1,12 +1,12 @@
-@import "../styles/globals.css";
+@import "./tailwind.css";
 
 @layer base {
   :root {
-    @apply font-sans;
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   }
 
   body {
-    @apply grid place-items-center min-w-[320px] min-h-screen relative m-0 bg-background text-foreground;
+    @apply min-w-[320px] min-h-screen relative m-0 bg-background text-foreground;
   }
 }
 
