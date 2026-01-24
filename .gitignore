@@ -46,3 +46,12 @@ test-results/
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# AI/agent development artifacts
+.ralph/
+.agents/
+ralph.sh
+.claude/
+
+# dev-browser profile data (cache, cookies, local storage, etc)
+.factory/skills/dev-browser/profiles/
